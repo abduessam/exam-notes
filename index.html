@@ -83,7 +83,6 @@
     overflow-y:auto;
     position:relative;
   }
-  /* مقبض تغيير الحجم */
   #sidebar-resizer {
     position:absolute;
     top:0;
@@ -197,31 +196,58 @@
   #folder-sub{font-size:12.5px;color:var(--text-faint);font-weight:500;}
   #header-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
   
-  /* الإحصائيات الجديدة بديلة زرار التحديث القديم */
   .stats-badge {
     display:flex;align-items:center;gap:8px;background:var(--bg-sidebar);
     border:1px solid var(--border);padding:6px 12px;border-radius:10px;font-size:12.5px;color:var(--text-dim);
   }
   .stats-badge span{font-weight:700;color:var(--accent);}
 
+  /* حاوية البحث المعدلة لزر الإغلاق */
+  .search-wrapper {
+    position: relative;
+    width: min(300px, 30vw);
+    min-width: 160px;
+  }
   #search-input{
-    width:min(300px, 30vw);
-    min-width:160px;
-    padding:10px 13px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:var(--bg-card);
-    color:var(--text);
-    outline:none;
-    font-family:inherit;
-    font-size:14px;
-    transition:.15s;
+    width: 100%;
+    padding: 10px 13px;
+    padding-left: 36px; /* مساحة لزر المسح */
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition: .15s;
   }
   #search-input:focus{
     border-color:var(--accent);
     box-shadow:0 0 0 3px rgba(227,162,60,.12);
   }
   #search-input::placeholder{color:var(--text-faint);}
+  
+  /* تكبير حجم الـ X الخاص بمسح البحث */
+  .search-clear-btn {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    font-size: 18px; /* حجم كبير وواضح */
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    line-height: 1;
+  }
+  .search-clear-btn:hover {
+    color: var(--text);
+  }
+
   .btn-primary{
     background:var(--accent);color:var(--accent-text);border:none;border-radius:10px;
     padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;display:flex;
@@ -253,11 +279,17 @@
     display:flex;align-items:center;justify-content:center;
   }
   .note-title{font-size:15.5px;font-weight:700;line-height:1.4;flex:1;}
+  
+  /* 🌟 تكبير حجم أيقونة النجمة في الكارد 🌟 */
   .card-fav-btn {
-    background:transparent;border:none;cursor:pointer;font-size:16px;padding:2px;color:var(--text-faint);
-    transition:transform 0.1s;
+    background:transparent;border:none;cursor:pointer;
+    font-size: 24px; /* تم تكبيرها من 16px إلى 24px */
+    padding:0px 4px;
+    color:var(--text-faint);
+    transition:transform 0.1s, color 0.1s;
+    line-height: 1;
   }
-  .card-fav-btn:hover{transform:scale(1.15);}
+  .card-fav-btn:hover{transform:scale(1.2);}
   .card-fav-btn.active{color:var(--accent);}
 
   .note-preview{
@@ -291,7 +323,6 @@
   .welcome-banner h2{margin:0 0 6px;font-size:22px;line-height:1.4;}
   .welcome-banner p{margin:0;color:var(--text-dim);line-height:1.8;font-size:14px;}
 
-  /* ---------- Empty states ---------- */
   .empty-state{
     height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;color:var(--text-dim);gap:10px;padding:40px;
@@ -340,7 +371,6 @@
   .btn-danger-ghost:hover{background:var(--danger-bg);}
   .footer-right{display:flex;gap:8px;}
 
-  /* السحب والإفلات */
   .drop-zone {
     border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center;
     color: var(--text-dim); transition: 0.2s ease; cursor: pointer; background: var(--bg-card);
@@ -370,12 +400,10 @@
     display:flex;align-items:center;justify-content:center;
   }
 
-  /* نوت فيو */
   .view-content{ font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word; }
   .view-imgs{display:flex;flex-direction:column;gap:10px;}
   .view-img{ width:100%;height:auto;max-width:100%;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block;background:var(--bg); }
 
-  /* لايت بوكس */
   .lightbox{ position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:80;display:flex;align-items:center;justify-content:center;padding:30px;cursor:zoom-out; }
   .lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
 
@@ -405,7 +433,7 @@
     #main-header{padding:14px 16px;flex-wrap:wrap;}
     #header-left{width:100%;}
     #header-right{width:100%;justify-content:space-between;}
-    #search-input{width:100%;min-width:0;order:3;}
+    .search-wrapper{width:100%;min-width:0;order:3;}
     #notes-scroll{padding:16px 16px 40px;}
     .welcome-banner{margin:14px 16px 0;}
   }
@@ -416,7 +444,6 @@
   <div id="backdrop" onclick="closeSidebarMobile()"></div>
 
   <aside id="sidebar">
-    <!-- مقبض تحريك الماوس لتوسيع الشريط -->
     <div id="sidebar-resizer"></div>
 
     <div class="brand">
@@ -429,7 +456,6 @@
     <div class="shared-badge">📚 موقع عباد الرحمن لنوتس الامتحان</div>
     <div class="shared-badge" id="conn-status" style="margin-top:6px;display:none;">Connecting to database...</div>
 
-    <!-- الأقسام الذكية الجديدة -->
     <div class="sidebar-section-label">الأقسام العامة</div>
     <div class="folder-list-container" style="margin-bottom:12px;">
       <div class="folder-item" id="global-favs-btn">
@@ -443,7 +469,6 @@
       </div>
     </div>
 
-    <!-- مجلدات مثبتة -->
     <div id="pinned-folders-section" style="display:none;">
       <div class="sidebar-section-label">📌 مجلدات مثبتة</div>
       <div id="pinned-folder-list" class="folder-list-container" style="margin-bottom:12px;"></div>
@@ -465,9 +490,11 @@
         </div>
       </div>
       <div id="header-right">
-        <!-- العدادات الإحصائية الشيك بديلة زر التحديث القديم -->
         <div class="stats-badge" id="stats-counter">مجلدات: <span id="stats-f-count">0</span> | نوتس: <span id="stats-n-count">0</span></div>
-        <input type="search" id="search-input" placeholder="ابحث بالاسم أو المحتوى">
+        <div class="search-wrapper">
+          <input type="search" id="search-input" placeholder="ابحث بالاسم أو المحتوى">
+          <button class="search-clear-btn" id="search-clear" title="مسح البحث">✕</button>
+        </div>
         <button class="btn-primary" id="new-note-btn" onclick="openNoteEditModal()" disabled>＋ نوت جديدة</button>
       </div>
     </div>
@@ -542,7 +569,7 @@ async function sDelete(key, shared){
 
 let folders = [];
 let notesByFolder = {};
-let currentFolderId = null; // ممكن يكون ايدي مجلد أو 'global-favs' أو 'global-recent'
+let currentFolderId = null;
 let theme = 'dark';
 let editingNote = null;
 let pendingImages = [];
@@ -582,7 +609,7 @@ async function init(){
   applyTheme();
   setupBackgroundMotion();
   setupSearch();
-  setupSidebarResizer(); // تفعيل خاصية التحكم بحجم الشريط
+  setupSidebarResizer();
   await refreshFolders();
   await preloadAllCounts();
   renderSidebar();
@@ -615,25 +642,35 @@ function setupBackgroundMotion(){
 
 function setupSearch(){
   const input = document.getElementById('search-input');
-  if(!input) return;
+  const clearBtn = document.getElementById('search-clear');
+  if(!input || !clearBtn) return;
+  
   input.addEventListener('input', ()=>{
     searchQuery = input.value.trim().toLowerCase();
+    clearBtn.style.display = searchQuery ? 'flex' : 'none';
     renderMain();
   });
+  
+  clearBtn.addEventListener('click', ()=>{
+    input.value = '';
+    searchQuery = '';
+    clearBtn.style.display = 'none';
+    renderMain();
+    input.focus();
+  });
+
   input.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape'){
-      input.value = ''; searchQuery = ''; renderMain(); input.blur();
+      input.value = ''; searchQuery = ''; clearBtn.style.display = 'none'; renderMain(); input.blur();
     }
   });
 }
 
-// 🌟 دالة التحكم في حجم الشريط الجانبي بالماوس 🌟
 function setupSidebarResizer() {
   const sidebar = document.getElementById('sidebar');
   const resizer = document.getElementById('sidebar-resizer');
   if (!sidebar || !resizer) return;
 
-  // استرجاع الحجم المخزن مسبقاً لو وجد
   const savedWidth = localStorage.getItem('sidebar-width');
   if (savedWidth) sidebar.style.width = savedWidth + 'px';
 
@@ -645,7 +682,6 @@ function setupSidebarResizer() {
     const startX = initE.clientX;
 
     function doDrag(moveE) {
-      // بما أن اتجاه الصفحة RTL، سحب الماوس لليسار يزيد العرض
       const deltaX = startX - moveE.clientX;
       let newWidth = startWidth + deltaX;
       
@@ -678,11 +714,9 @@ async function preloadAllCounts(){
     totalNotes += (data || []).length;
   }));
 
-  // تحديث العدادات العلوية
   document.getElementById('stats-f-count').textContent = folders.length;
   document.getElementById('stats-n-count').textContent = totalNotes;
 
-  // تحديث عداد المفضلة الإجمالي
   let favsCount = 0;
   Object.values(notesByFolder).forEach(list => {
     list.forEach(n => { if(n.isFavorite) favsCount++; });
@@ -740,7 +774,6 @@ function renderSidebar(){
   list.innerHTML = '';
   pinnedList.innerHTML = '';
 
-  // تحديث كلاس النشاط للأقسام العامة
   document.getElementById('global-favs-btn').className = 'folder-item' + (currentFolderId==='global-favs' ? ' active':'');
   document.getElementById('global-recent-btn').className = 'folder-item' + (currentFolderId==='global-recent' ? ' active':'');
 
@@ -786,7 +819,6 @@ function renderSidebar(){
   pinnedFolders.forEach(f => pinnedList.appendChild(createFolderEl(f)));
   normalFolders.forEach(f => list.appendChild(createFolderEl(f)));
 
-  // فورم إضافة مجلد
   const addWrap = document.getElementById('add-folder-wrap');
   if(!addWrap) return;
   if(addFolderOpen){
@@ -897,8 +929,7 @@ function renderMain(){
   if (currentFolderId === 'global-favs') {
     isGlobalView = true;
     if(titleEl) titleEl.textContent = '⭐ النوتس المفضلة';
-    if(newBtn) newBtn.disabled = true; // لا يمكن إضافة نوت مباشرة هنا
-    // تجميع كل النوتس المفضلة
+    if(newBtn) newBtn.disabled = true;
     Object.keys(notesByFolder).forEach(fId => {
       const f = folders.find(x => x.id === fId);
       const list = notesByFolder[fId] || [];
@@ -912,18 +943,16 @@ function renderMain(){
     isGlobalView = true;
     if(titleEl) titleEl.textContent = '🕒 أحدث النوتس المضافة';
     if(newBtn) newBtn.disabled = true;
-    // تجميع وترتيب كل النوتس تنازلياً حسب الوقت واخذ آخر 5
     Object.keys(notesByFolder).forEach(fId => {
       const f = folders.find(x => x.id === fId);
       const list = notesByFolder[fId] || [];
       list.forEach(n => notes.push({ ...n, folderId: fId, folderName: f ? f.name : '' }));
     });
     notes.sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
-    notes = notes.slice(0, 5); // أحدث 5 نوتس
+    notes = notes.slice(0, 5);
     if(subEl) subEl.textContent = `أحدث 5 نوتس تم تعديلها أو إضافتها`;
   } 
   else {
-    // عرض مجلد عادي
     isGlobalView = false;
     const folder = folders.find(f=>f.id===currentFolderId);
     notes = notesByFolder[currentFolderId] || [];
@@ -932,7 +961,6 @@ function renderMain(){
     if(newBtn) newBtn.disabled = false;
   }
 
-  // تطبيق البحث لو موجود
   if (searchQuery) {
     notes = notes.filter(n => (n.title||'').toLowerCase().includes(searchQuery) || (n.content||'').toLowerCase().includes(searchQuery));
   }
@@ -958,13 +986,11 @@ function renderMain(){
       <div class="note-date">${formatDate(note.createdAt)}</div>
     `;
     
-    // حدث الضغط على النوت لفتحها
     card.addEventListener('click', (e) => {
       if(e.target.closest('.card-fav-btn')) return;
       openNoteViewModal(note, note.folderId || currentFolderId);
     });
 
-    // حدث زرار المفضلة السريع
     card.querySelector('.card-fav-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       toggleFavoriteNote(note, note.folderId || currentFolderId);
@@ -982,7 +1008,7 @@ async function toggleFavoriteNote(note, folderId) {
   }
   notesByFolder[folderId] = notes;
   await sSet('app:notes:' + folderId, notes, true);
-  await preloadAllCounts(); // لتحديث أعداد المفضلة بالشريط
+  await preloadAllCounts();
   renderSidebar();
   renderMain();
 }
