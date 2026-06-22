@@ -71,7 +71,9 @@
 
   /* ---------- Sidebar ---------- */
   #sidebar{
-    width:270px;
+    width:280px;
+    min-width:220px;
+    max-width:450px;
     flex-shrink:0;
     background:var(--bg-sidebar);
     border-left:1px solid var(--border);
@@ -79,7 +81,24 @@
     flex-direction:column;
     padding:16px 14px;
     overflow-y:auto;
+    position:relative;
   }
+  /* مقبض تغيير الحجم */
+  #sidebar-resizer {
+    position:absolute;
+    top:0;
+    left:0;
+    width:4px;
+    height:100%;
+    cursor:ew-resize;
+    background:transparent;
+    transition: background 0.2s;
+    z-index:10;
+  }
+  #sidebar-resizer:hover, body.resizing #sidebar-resizer {
+    background: var(--accent);
+  }
+
   .brand{
     display:flex;align-items:center;justify-content:space-between;
     margin-bottom:4px;
@@ -96,24 +115,25 @@
   .shared-badge{
     font-size:11px;color:var(--text-faint);background:var(--bg);
     border:1px solid var(--border);border-radius:20px;padding:5px 10px;
-    margin-bottom:16px;line-height:1.6;
+    margin-bottom:16px;line-height:1.6;text-align:center;
   }
   .icon-btn{
     background:transparent;border:1px solid var(--border);color:var(--text-dim);
     width:34px;height:34px;border-radius:9px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    font-size:16px;transition:.15s;
+    font-size:16px;transition:.15s;flex-shrink:0;
   }
   .icon-btn:hover{background:var(--bg-card-hover);color:var(--text);}
 
   .sidebar-section-label{
     font-size:11px;color:var(--text-faint);font-weight:700;
-    text-transform:uppercase;letter-spacing:.06em;margin:10px 4px 8px;
+    text-transform:uppercase;letter-spacing:.06em;margin:12px 4px 6px;
+    display:flex;align-items:center;justify-content:between;
   }
-  #folder-list{display:flex;flex-direction:column;gap:4px;flex:1;}
+  .folder-list-container{display:flex;flex-direction:column;gap:4px;}
   .folder-item{
-    display:flex;align-items:center;gap:10px;
-    padding:9px 10px;border-radius:10px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+    padding:8px 8px;border-radius:10px;cursor:pointer;
     color:var(--text-dim);position:relative;
     border:1px solid transparent;
   }
@@ -123,31 +143,29 @@
     font-weight:700;
   }
   .folder-avatar{
-    width:28px;height:28px;border-radius:8px;flex-shrink:0;
+    width:26px;height:26px;border-radius:6px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
-    font-size:13px;font-weight:800;color:#fff;
+    font-size:12px;font-weight:800;color:#fff;
     background-size:cover;background-position:center;overflow:hidden;
   }
-  .folder-edit{
-    opacity:0;width:24px;height:24px;border-radius:6px;border:none;background:transparent;
-    color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;font-size:13px;
+  .folder-actions-btns {
+    display:flex;gap:2px;opacity:0;flex-shrink:0;
   }
-  .folder-item:hover .folder-edit{opacity:1;}
-  .folder-edit:hover{background:var(--bg-card-hover);color:var(--text);}
-  .folder-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14.5px;}
+  .folder-item:hover .folder-actions-btns{opacity:1;}
+  
+  .folder-action-small{
+    width:22px;height:22px;border-radius:5px;border:none;background:transparent;
+    color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+  }
+  .folder-action-small:hover{background:var(--bg-card-hover);color:var(--text);}
+  .folder-action-small.pin-active{color:var(--accent);opacity:1 !important;}
+  .folder-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;}
   .folder-count{
-    font-size:11.5px;color:var(--text-faint);background:var(--bg);
-    border:1px solid var(--border);border-radius:20px;padding:2px 8px;flex-shrink:0;
+    font-size:11px;color:var(--text-faint);background:var(--bg);
+    border:1px solid var(--border);border-radius:20px;padding:1px 6px;flex-shrink:0;
   }
   .folder-item.active .folder-count{color:var(--text-dim);}
-  .folder-del{
-    opacity:0;width:24px;height:24px;border-radius:6px;border:none;background:transparent;
-    color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;font-size:14px;
-  }
-  .folder-item:hover .folder-del{opacity:1;}
-  .folder-del:hover{background:var(--danger-bg);color:var(--danger);}
 
   #add-folder-wrap{margin-top:10px;}
   .add-folder-btn{
@@ -177,10 +195,18 @@
   #hamburger{display:none;}
   #folder-title{font-size:20px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   #folder-sub{font-size:12.5px;color:var(--text-faint);font-weight:500;}
-  #header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  #header-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  
+  /* الإحصائيات الجديدة بديلة زرار التحديث القديم */
+  .stats-badge {
+    display:flex;align-items:center;gap:8px;background:var(--bg-sidebar);
+    border:1px solid var(--border);padding:6px 12px;border-radius:10px;font-size:12.5px;color:var(--text-dim);
+  }
+  .stats-badge span{font-weight:700;color:var(--accent);}
+
   #search-input{
-    width:min(340px, 36vw);
-    min-width:180px;
+    width:min(300px, 30vw);
+    min-width:160px;
     padding:10px 13px;
     border-radius:10px;
     border:1px solid var(--border);
@@ -212,7 +238,7 @@
   .note-card{
     background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
     padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:10px;
-    transition:.15s;min-height:120px;
+    transition:.15s;min-height:120px;position:relative;
     animation:fadeUp .35s ease both;
   }
   .note-card:hover{background:var(--bg-card-hover);transform:translateY(-1px);box-shadow:var(--shadow);}
@@ -222,15 +248,26 @@
   }
   .note-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
   .note-badge{
-    width:34px;height:34px;border-radius:50%;border:2px solid var(--accent);
-    color:var(--accent);font-weight:800;font-size:14px;flex-shrink:0;
+    width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);
+    color:var(--accent);font-weight:800;font-size:13px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
   }
   .note-title{font-size:15.5px;font-weight:700;line-height:1.4;flex:1;}
+  .card-fav-btn {
+    background:transparent;border:none;cursor:pointer;font-size:16px;padding:2px;color:var(--text-faint);
+    transition:transform 0.1s;
+  }
+  .card-fav-btn:hover{transform:scale(1.15);}
+  .card-fav-btn.active{color:var(--accent);}
+
   .note-preview{
     font-size:13px;color:var(--text-dim);line-height:1.6;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
     white-space:pre-wrap;
+  }
+  .note-folder-indicator {
+    font-size:11px;background:var(--bg-sidebar);border:1px solid var(--border);
+    padding:2px 6px;border-radius:6px;color:var(--text-faint);align-self:flex-start;
   }
   .note-imgs{display:flex;gap:6px;margin-top:auto;}
   .note-imgs img{
@@ -251,17 +288,8 @@
     background:linear-gradient(135deg, rgba(227,162,60,.10), rgba(95,168,211,.05));
     box-shadow:var(--shadow);
   }
-  .welcome-banner h2{
-    margin:0 0 6px;
-    font-size:22px;
-    line-height:1.4;
-  }
-  .welcome-banner p{
-    margin:0;
-    color:var(--text-dim);
-    line-height:1.8;
-    font-size:14px;
-  }
+  .welcome-banner h2{margin:0 0 6px;font-size:22px;line-height:1.4;}
+  .welcome-banner p{margin:0;color:var(--text-dim);line-height:1.8;font-size:14px;}
 
   /* ---------- Empty states ---------- */
   .empty-state{
@@ -312,12 +340,24 @@
   .btn-danger-ghost:hover{background:var(--danger-bg);}
   .footer-right{display:flex;gap:8px;}
 
+  /* السحب والإفلات */
+  .drop-zone {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center;
+    color: var(--text-dim); transition: 0.2s ease; cursor: pointer; background: var(--bg-card);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .drop-zone:hover { border-color: var(--accent); color: var(--accent); }
+  .drop-zone.dragover { border-color: var(--accent); background: rgba(227, 162, 60, 0.1); color: var(--accent); transform: scale(1.02); }
+  .drop-zone-icon { font-size: 28px; }
+  .drop-zone-text { font-size: 14px; font-weight: 600; }
+
   .img-upload-btn{
     border:1.5px dashed var(--border);border-radius:10px;padding:10px 14px;
     color:var(--text-dim);cursor:pointer;font-size:13.5px;font-weight:600;
     display:inline-flex;align-items:center;gap:6px;
   }
   .img-upload-btn:hover{border-color:var(--accent);color:var(--accent);}
+  
   #img-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
   .img-preview{
     position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;
@@ -330,28 +370,20 @@
     display:flex;align-items:center;justify-content:center;
   }
 
-  /* note view (read-only) */
-  .view-content{
-    font-size:15px;line-height:1.8;color:var(--text);
-    white-space:pre-wrap;word-break:break-word;
-  }
+  /* نوت فيو */
+  .view-content{ font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word; }
   .view-imgs{display:flex;flex-direction:column;gap:10px;}
-  .view-img{
-    width:100%;height:auto;max-width:100%;
-    border-radius:10px;border:1px solid var(--border);
-    cursor:zoom-in;display:block;background:var(--bg);
-  }
+  .view-img{ width:100%;height:auto;max-width:100%;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block;background:var(--bg); }
 
-  /* lightbox */
-  .lightbox{
-    position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:80;
-    display:flex;align-items:center;justify-content:center;padding:30px;cursor:zoom-out;
-  }
+  /* لايت بوكس */
+  .lightbox{ position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:80;display:flex;align-items:center;justify-content:center;padding:30px;cursor:zoom-out; }
   .lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
 
   ::-webkit-scrollbar{width:9px;height:9px;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
   ::-webkit-scrollbar-track{background:transparent;}
+
+  body.resizing { user-select: none; cursor: ew-resize; }
 
   .toast{
     position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
@@ -361,17 +393,12 @@
   }
   .toast.show{opacity:1;}
 
-  /* mobile */
   @media (max-width:760px){
-    #sidebar{
-      position:fixed;inset:0 25% 0 auto;z-index:40;width:78%;max-width:300px;
-      transform:translateX(105%);transition:transform .22s ease;box-shadow:var(--shadow);
-    }
+    #sidebar{ position:fixed;inset:0 25% 0 auto;z-index:40;width:78% !important;max-width:300px;transform:translateX(105%);transition:transform .22s ease;box-shadow:var(--shadow); }
     html[dir="rtl"] #sidebar{transform:translateX(-105%);}
     body.sidebar-open #sidebar{transform:translateX(0);}
-    #backdrop{
-      position:fixed;inset:0;background:var(--overlay);z-index:35;display:none;
-    }
+    #sidebar-resizer{display:none;}
+    #backdrop{ position:fixed;inset:0;background:var(--overlay);z-index:35;display:none; }
     body.sidebar-open #backdrop{display:block;}
     #hamburger{display:flex;}
     #notes-grid{grid-template-columns:1fr;}
@@ -389,18 +416,41 @@
   <div id="backdrop" onclick="closeSidebarMobile()"></div>
 
   <aside id="sidebar">
+    <!-- مقبض تحريك الماوس لتوسيع الشريط -->
+    <div id="sidebar-resizer"></div>
+
     <div class="brand">
       <div class="brand-title"><span class="brand-dot"></span> UWorld Notes</div>
       <div class="brand-actions">
-        <button class="icon-btn" id="refresh-folders-btn" title="تحديث">🔄</button>
+        <button class="icon-btn" id="refresh-folders-btn" title="تحديث كل البيانات">🔄</button>
         <button class="icon-btn" id="theme-toggle" title="تبديل المظهر">🌙</button>
       </div>
     </div>
     <div class="shared-badge">📚 موقع عباد الرحمن لنوتس الامتحان</div>
     <div class="shared-badge" id="conn-status" style="margin-top:6px;display:none;">Connecting to database...</div>
 
+    <!-- الأقسام الذكية الجديدة -->
+    <div class="sidebar-section-label">الأقسام العامة</div>
+    <div class="folder-list-container" style="margin-bottom:12px;">
+      <div class="folder-item" id="global-favs-btn">
+        <div class="folder-avatar" style="background:var(--accent)">⭐</div>
+        <div class="folder-name">النوتس المفضلة</div>
+        <div class="folder-count" id="global-favs-count">0</div>
+      </div>
+      <div class="folder-item" id="global-recent-btn">
+        <div class="folder-avatar" style="background:#5fa8d3">🕒</div>
+        <div class="folder-name">أحدث النوتس المضافة</div>
+      </div>
+    </div>
+
+    <!-- مجلدات مثبتة -->
+    <div id="pinned-folders-section" style="display:none;">
+      <div class="sidebar-section-label">📌 مجلدات مثبتة</div>
+      <div id="pinned-folder-list" class="folder-list-container" style="margin-bottom:12px;"></div>
+    </div>
+
     <div class="sidebar-section-label">المجلدات</div>
-    <div id="folder-list"></div>
+    <div id="folder-list" class="folder-list-container"></div>
 
     <div id="add-folder-wrap"></div>
   </aside>
@@ -415,8 +465,9 @@
         </div>
       </div>
       <div id="header-right">
+        <!-- العدادات الإحصائية الشيك بديلة زر التحديث القديم -->
+        <div class="stats-badge" id="stats-counter">مجلدات: <span id="stats-f-count">0</span> | نوتس: <span id="stats-n-count">0</span></div>
         <input type="search" id="search-input" placeholder="ابحث بالاسم أو المحتوى">
-        <button class="icon-btn" id="refresh-notes-btn" title="تحديث النوتس">🔄</button>
         <button class="btn-primary" id="new-note-btn" onclick="openNoteEditModal()" disabled>＋ نوت جديدة</button>
       </div>
     </div>
@@ -491,7 +542,7 @@ async function sDelete(key, shared){
 
 let folders = [];
 let notesByFolder = {};
-let currentFolderId = null;
+let currentFolderId = null; // ممكن يكون ايدي مجلد أو 'global-favs' أو 'global-recent'
 let theme = 'dark';
 let editingNote = null;
 let pendingImages = [];
@@ -518,6 +569,7 @@ function formatDate(ts){
 let toastTimer=null;
 function showToast(msg){
   const t = document.getElementById('toast');
+  if(!t) return;
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
@@ -530,6 +582,7 @@ async function init(){
   applyTheme();
   setupBackgroundMotion();
   setupSearch();
+  setupSidebarResizer(); // تفعيل خاصية التحكم بحجم الشريط
   await refreshFolders();
   await preloadAllCounts();
   renderSidebar();
@@ -574,17 +627,71 @@ function setupSearch(){
   });
 }
 
+// 🌟 دالة التحكم في حجم الشريط الجانبي بالماوس 🌟
+function setupSidebarResizer() {
+  const sidebar = document.getElementById('sidebar');
+  const resizer = document.getElementById('sidebar-resizer');
+  if (!sidebar || !resizer) return;
+
+  // استرجاع الحجم المخزن مسبقاً لو وجد
+  const savedWidth = localStorage.getItem('sidebar-width');
+  if (savedWidth) sidebar.style.width = savedWidth + 'px';
+
+  resizer.addEventListener('mousedown', (initE) => {
+    initE.preventDefault();
+    document.body.classList.add('resizing');
+    
+    const startWidth = sidebar.offsetWidth;
+    const startX = initE.clientX;
+
+    function doDrag(moveE) {
+      // بما أن اتجاه الصفحة RTL، سحب الماوس لليسار يزيد العرض
+      const deltaX = startX - moveE.clientX;
+      let newWidth = startWidth + deltaX;
+      
+      if (newWidth >= 220 && newWidth <= 450) {
+        sidebar.style.width = newWidth + 'px';
+        localStorage.setItem('sidebar-width', newWidth);
+      }
+    }
+
+    function stopDrag() {
+      document.body.classList.remove('resizing');
+      document.removeEventListener('mousemove', doDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', stopDrag);
+  });
+}
+
 async function refreshFolders(){
   const data = await sGet('app:folders', true);
   folders = data || [];
 }
 async function preloadAllCounts(){
+  let totalNotes = 0;
   await Promise.all(folders.map(async folder=>{
     const data = await sGet('app:notes:' + folder.id, true);
     notesByFolder[folder.id] = data || [];
+    totalNotes += (data || []).length;
   }));
+
+  // تحديث العدادات العلوية
+  document.getElementById('stats-f-count').textContent = folders.length;
+  document.getElementById('stats-n-count').textContent = totalNotes;
+
+  // تحديث عداد المفضلة الإجمالي
+  let favsCount = 0;
+  Object.values(notesByFolder).forEach(list => {
+    list.forEach(n => { if(n.isFavorite) favsCount++; });
+  });
+  document.getElementById('global-favs-count').textContent = favsCount;
 }
+
 async function loadNotesForFolder(folderId, force){
+  if(folderId === 'global-favs' || folderId === 'global-recent') return;
   if(notesByFolder[folderId] && !force) return;
   const data = await sGet('app:notes:' + folderId, true);
   notesByFolder[folderId] = data || [];
@@ -626,14 +733,33 @@ async function migrateLocalToShared(localFolders){
 
 function renderSidebar(){
   const list = document.getElementById('folder-list');
+  const pinnedList = document.getElementById('pinned-folder-list');
+  const pinnedSection = document.getElementById('pinned-folders-section');
+  
+  if(!list || !pinnedList) return;
   list.innerHTML = '';
-  if(folders.length === 0){
+  pinnedList.innerHTML = '';
+
+  // تحديث كلاس النشاط للأقسام العامة
+  document.getElementById('global-favs-btn').className = 'folder-item' + (currentFolderId==='global-favs' ? ' active':'');
+  document.getElementById('global-recent-btn').className = 'folder-item' + (currentFolderId==='global-recent' ? ' active':'');
+
+  document.getElementById('global-favs-btn').onclick = () => selectFolder('global-favs');
+  document.getElementById('global-recent-btn').onclick = () => selectFolder('global-recent');
+
+  const pinnedFolders = folders.filter(f => f.isPinned);
+  const normalFolders = folders.filter(f => !f.isPinned);
+
+  pinnedSection.style.display = pinnedFolders.length > 0 ? 'block' : 'none';
+
+  if(normalFolders.length === 0 && pinnedFolders.length === 0){
     const hint = document.createElement('div');
     hint.style.cssText = 'font-size:13px;color:var(--text-faint);padding:8px 4px;line-height:1.7;';
     hint.textContent = 'لسه مفيش مجلدات. اعمل أول مجلد جديد.';
     list.appendChild(hint);
   }
-  folders.forEach(f=>{
+
+  const createFolderEl = (f) => {
     const count = Array.isArray(notesByFolder[f.id]) ? notesByFolder[f.id].length : 0;
     const item = document.createElement('div');
     item.className = 'folder-item' + (f.id===currentFolderId ? ' active':'');
@@ -641,19 +767,28 @@ function renderSidebar(){
       <div class="folder-avatar" style="${f.image ? `background-image:url('${f.image}')` : `background:${f.color}`}">${f.image ? '' : escapeHtml(f.name.trim()[0] || '#')}</div>
       <div class="folder-name">${escapeHtml(f.name)}</div>
       <div class="folder-count">${count}</div>
-      <button class="folder-edit" title="تعديل">✏️</button>
-      <button class="folder-del" title="حذف">🗑️</button>
+      <div class="folder-actions-btns">
+        <button class="folder-action-small pin-toggle ${f.isPinned ? 'pin-active' : ''}" title="${f.isPinned ? 'إزالة التثبيت' : 'تثبيت المجلد'}">📌</button>
+        <button class="folder-action-small folder-edit" title="تعديل">✏️</button>
+        <button class="folder-action-small folder-del" title="حذف">🗑️</button>
+      </div>
     `;
     item.addEventListener('click', (e)=>{
-      if(e.target.closest('.folder-del') || e.target.closest('.folder-edit')) return;
+      if(e.target.closest('.folder-actions-btns')) return;
       selectFolder(f.id);
     });
+    item.querySelector('.pin-toggle').addEventListener('click', (e)=>{ e.stopPropagation(); togglePinFolder(f.id); });
     item.querySelector('.folder-edit').addEventListener('click', (e)=>{ e.stopPropagation(); openEditFolderModal(f); });
     item.querySelector('.folder-del').addEventListener('click', (e)=>{ e.stopPropagation(); confirmDeleteFolder(f); });
-    list.appendChild(item);
-  });
+    return item;
+  };
 
+  pinnedFolders.forEach(f => pinnedList.appendChild(createFolderEl(f)));
+  normalFolders.forEach(f => list.appendChild(createFolderEl(f)));
+
+  // فورم إضافة مجلد
   const addWrap = document.getElementById('add-folder-wrap');
+  if(!addWrap) return;
   if(addFolderOpen){
     addWrap.innerHTML = `
       <form class="add-folder-form" id="add-folder-form">
@@ -673,9 +808,20 @@ function renderSidebar(){
   }
 }
 
+async function togglePinFolder(folderId) {
+  const fresh = await sGet('app:folders', true) || [];
+  const idx = fresh.findIndex(x => x.id === folderId);
+  if (idx > -1) {
+    fresh[idx].isPinned = !fresh[idx].isPinned;
+  }
+  folders = fresh;
+  await sSet('app:folders', folders, true);
+  renderSidebar();
+}
+
 async function addFolder(name){
   const fresh = await sGet('app:folders', true) || [];
-  const f = { id: uid('f'), name, color: '', createdAt: Date.now() };
+  const f = { id: uid('f'), name, color: '', isPinned: false, createdAt: Date.now() };
   f.color = colorForFolder(f.id); fresh.push(f); folders = fresh;
   notesByFolder[f.id] = []; await sSet('app:folders', folders, true); await selectFolder(f.id);
 }
@@ -737,56 +883,167 @@ async function selectFolder(folderId){ currentFolderId = folderId; await loadNot
 function renderMain(){
   const titleEl = document.getElementById('folder-title'); const subEl = document.getElementById('folder-sub');
   const grid = document.getElementById('notes-grid'); const newBtn = document.getElementById('new-note-btn');
-  const welcome = document.getElementById('welcome-banner'); grid.innerHTML = '';
+  const welcome = document.getElementById('welcome-banner'); if(!grid) return; grid.innerHTML = '';
+  
   if(welcome) welcome.style.display = currentFolderId ? 'none' : 'block';
   if(!currentFolderId){
-    titleEl.textContent = 'اختار مجلد'; subEl.textContent = ''; newBtn.disabled = true;
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🗂️</div><h3>اختار أو اعمل مجلد الأول</h3><p>استخدم زرار مجلد جديد في الشريط الجانبي لبدء الكتابة.</p></div>`; return;
+    if(titleEl) titleEl.textContent = 'اختار مجلد'; if(subEl) subEl.textContent = ''; if(newBtn) newBtn.disabled = true;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🗂️</div><h3>اختار أو اعمل مجلد الأول</h3><p>استخدم شريط المجلدات الجانبي لبدء الكتابة والتصفح.</p></div>`; return;
   }
-  const folder = folders.find(f=>f.id===currentFolderId); const allNotes = notesByFolder[currentFolderId] || [];
-  const notes = searchQuery ? allNotes.filter(n=> (n.title||'').toLowerCase().includes(searchQuery) || (n.content||'').toLowerCase().includes(searchQuery) ) : allNotes;
-  titleEl.textContent = folder ? folder.name : ''; subEl.textContent = notes.length ? `${notes.length} نوت` : 'لسه مفيش نوتس'; newBtn.disabled = false;
+
+  let notes = [];
+  let isGlobalView = false;
+
+  if (currentFolderId === 'global-favs') {
+    isGlobalView = true;
+    if(titleEl) titleEl.textContent = '⭐ النوتس المفضلة';
+    if(newBtn) newBtn.disabled = true; // لا يمكن إضافة نوت مباشرة هنا
+    // تجميع كل النوتس المفضلة
+    Object.keys(notesByFolder).forEach(fId => {
+      const f = folders.find(x => x.id === fId);
+      const list = notesByFolder[fId] || [];
+      list.forEach(n => {
+        if(n.isFavorite) notes.push({ ...n, folderId: fId, folderName: f ? f.name : '' });
+      });
+    });
+    if(subEl) subEl.textContent = `${notes.length} نوت مفضلة`;
+  } 
+  else if (currentFolderId === 'global-recent') {
+    isGlobalView = true;
+    if(titleEl) titleEl.textContent = '🕒 أحدث النوتس المضافة';
+    if(newBtn) newBtn.disabled = true;
+    // تجميع وترتيب كل النوتس تنازلياً حسب الوقت واخذ آخر 5
+    Object.keys(notesByFolder).forEach(fId => {
+      const f = folders.find(x => x.id === fId);
+      const list = notesByFolder[fId] || [];
+      list.forEach(n => notes.push({ ...n, folderId: fId, folderName: f ? f.name : '' }));
+    });
+    notes.sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+    notes = notes.slice(0, 5); // أحدث 5 نوتس
+    if(subEl) subEl.textContent = `أحدث 5 نوتس تم تعديلها أو إضافتها`;
+  } 
+  else {
+    // عرض مجلد عادي
+    isGlobalView = false;
+    const folder = folders.find(f=>f.id===currentFolderId);
+    notes = notesByFolder[currentFolderId] || [];
+    if(titleEl) titleEl.textContent = folder ? folder.name : '';
+    if(subEl) subEl.textContent = notes.length ? `${notes.length} نوت` : 'لسه مفيش نوتس';
+    if(newBtn) newBtn.disabled = false;
+  }
+
+  // تطبيق البحث لو موجود
+  if (searchQuery) {
+    notes = notes.filter(n => (n.title||'').toLowerCase().includes(searchQuery) || (n.content||'').toLowerCase().includes(searchQuery));
+  }
+
   if(notes.length === 0){
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🔎</div><h3>مفيش نوتس هنا</h3></div>`; return;
   }
+
   notes.forEach((note, idx)=>{
     const card = document.createElement('div'); card.className = 'note-card';
     const imgsHtml = (note.images && note.images.length) ? `<div class="note-imgs">${note.images.slice(0,3).map(im=>`<img src="${im.data}">`).join('')}${note.images.length>3 ? `<div class="more-badge">+${note.images.length-3}</div>`:''}</div>` : '';
-    card.innerHTML = `<div class="note-top"><div class="note-badge">${idx+1}</div><div class="note-title">${escapeHtml(note.title) || 'بدون عنوان'}</div></div><div class="note-preview">${escapeHtml(note.content)}</div>${imgsHtml}<div class="note-date">${formatDate(note.createdAt)}</div>`;
-    card.addEventListener('click', ()=>openNoteViewModal(note)); grid.appendChild(card);
+    const folderIndicator = isGlobalView ? `<div class="note-folder-indicator">📂 ${escapeHtml(note.folderName)}</div>` : '';
+    
+    card.innerHTML = `
+      <div class="note-top">
+        <div class="note-badge">${idx+1}</div>
+        <div class="note-title">${escapeHtml(note.title) || 'بدون عنوان'}</div>
+        <button class="card-fav-btn ${note.isFavorite ? 'active' : ''}" title="المفضلة">${note.isFavorite ? '★' : '☆'}</button>
+      </div>
+      <div class="note-preview">${escapeHtml(note.content)}</div>
+      ${folderIndicator}
+      ${imgsHtml}
+      <div class="note-date">${formatDate(note.createdAt)}</div>
+    `;
+    
+    // حدث الضغط على النوت لفتحها
+    card.addEventListener('click', (e) => {
+      if(e.target.closest('.card-fav-btn')) return;
+      openNoteViewModal(note, note.folderId || currentFolderId);
+    });
+
+    // حدث زرار المفضلة السريع
+    card.querySelector('.card-fav-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavoriteNote(note, note.folderId || currentFolderId);
+    });
+
+    grid.appendChild(card);
   });
 }
 
-async function openNoteViewModal(note){
-  await loadNotesForFolder(currentFolderId, true); renderMain();
-  const fresh = (notesByFolder[currentFolderId] || []).find(n => n.id === note.id); if(!fresh){ showToast('النوت مش موجود'); return; } note = fresh;
-  const folder = folders.find(f=>f.id===currentFolderId); const notes = notesByFolder[currentFolderId] || []; const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
+async function toggleFavoriteNote(note, folderId) {
+  const notes = await sGet('app:notes:' + folderId, true) || [];
+  const idx = notes.findIndex(n => n.id === note.id);
+  if (idx > -1) {
+    notes[idx].isFavorite = !notes[idx].isFavorite;
+  }
+  notesByFolder[folderId] = notes;
+  await sSet('app:notes:' + folderId, notes, true);
+  await preloadAllCounts(); // لتحديث أعداد المفضلة بالشريط
+  renderSidebar();
+  renderMain();
+}
+
+async function openNoteViewModal(note, folderId){
+  const targetFolderId = folderId || currentFolderId;
+  await loadNotesForFolder(targetFolderId, true);
+  const fresh = (notesByFolder[targetFolderId] || []).find(n => n.id === note.id); if(!fresh){ showToast('النوت مش موجود'); return; } note = fresh;
+  const notes = notesByFolder[targetFolderId] || []; const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
   const imgsHtml = (note.images && note.images.length) ? `<div class="view-imgs">${note.images.map(im=>`<img src="${im.data}" class="view-img" data-src="${im.data}">`).join('')}</div>` : '';
+  
   showModal(`
     <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'بدون عنوان'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
     <div class="modal-body">${note.content ? `<div class="view-content">${escapeHtml(note.content)}</div>` : ''}${imgsHtml}<div class="note-date">${formatDate(note.createdAt)}</div></div>
     <div class="modal-footer"><button class="btn-danger-ghost" id="delete-note-view-btn">حذف النوت</button><div class="footer-right"><button class="btn-ghost" id="close-view-btn">إغلاق</button><button class="btn-primary" id="edit-note-btn">✏️ تعديل</button></div></div>
   `);
+  
   document.getElementById('close-view-modal').onclick = closeModal; document.getElementById('close-view-btn').onclick = closeModal;
-  document.getElementById('edit-note-btn').onclick = ()=>openNoteEditModal(note); document.getElementById('delete-note-view-btn').onclick = ()=>confirmDeleteNote(note);
+  document.getElementById('edit-note-btn').onclick = ()=>openNoteEditModal(note, targetFolderId); 
+  document.getElementById('delete-note-view-btn').onclick = ()=>confirmDeleteNote(note, targetFolderId);
   document.querySelectorAll('.view-img').forEach(img=>{ img.addEventListener('click', ()=>openLightbox(img.dataset.src)); });
 }
 
-async function openNoteEditModal(note){
-  await loadNotesForFolder(currentFolderId, true); renderMain(); editingNote = note || null; pendingImages = note ? JSON.parse(JSON.stringify(note.images||[])) : [];
-  const folder = folders.find(f=>f.id===currentFolderId); const notes = notesByFolder[currentFolderId] || []; const noteNumber = note ? (notes.findIndex(n=>n.id===note.id)+1) : (notes.length+1);
+async function openNoteEditModal(note, folderId){
+  const targetFolderId = folderId || currentFolderId;
+  await loadNotesForFolder(targetFolderId, true); renderMain(); 
+  editingNote = note || null; pendingImages = note ? JSON.parse(JSON.stringify(note.images||[])) : [];
+  
   showModal(`
     <div class="modal-header"><h3>${note ? 'تعديل النوت' : 'نوت جديدة'}</h3><button class="icon-btn" id="close-note-modal">✕</button></div>
     <div class="modal-body">
       <div><label class="field-label">العنوان</label><input type="text" class="text-input" id="note-title-input" maxlength="120" value="${escapeHtml(note ? note.title : '')}"></div>
       <div><label class="field-label">المحتوى</label><textarea class="text-input" id="note-content-input">${escapeHtml(note ? note.content : '')}</textarea></div>
-      <div><label class="field-label">الصور</label><label class="img-upload-btn">🖼️ إضافة صورة<input type="file" accept="image/*" multiple id="note-img-input" style="display:none"></label><div id="img-previews"></div></div>
+      
+      <div>
+        <label class="field-label">الصور</label>
+        <div id="drop-zone" class="drop-zone">
+          <span class="drop-zone-icon">🖼️</span>
+          <span class="drop-zone-text">اسحب الصور وارميها هنا، أو اضغط لاختيار الصور</span>
+          <input type="file" accept="image/*" multiple id="note-img-input" style="display:none">
+        </div>
+        <div id="img-previews"></div>
+      </div>
+
     </div>
-    <div class="modal-footer"><div>${note ? '<button class="btn-danger-ghost" id="delete-note-btn">حذف النوت</button>' : ''}</div><div class="footer-right"><button class="btn-ghost" id="cancel-note-btn">إلغاء</button><button class="btn-primary" id="save-note-btn">حفظ</button></div></div>
+    <div class="modal-footer"><div>${note ? '<button class="btn-danger-ghost" id="delete-note-btn">حذف النوت</button>' : ''}</div><div class="footer-right"><button class="btn-ghost" id="cancel-note-btn">إلغاء</button><button class="btn-primary" id="save-note-btn" data-folder="${targetFolderId}">حفظ</button></div></div>
   `);
-  renderImgPreviews(); document.getElementById('close-note-modal').onclick = closeModal; document.getElementById('cancel-note-btn').onclick = closeModal;
-  document.getElementById('note-img-input').addEventListener('change', handleImageInput); document.getElementById('save-note-btn').onclick = saveNote;
-  if(document.getElementById('delete-note-btn')) document.getElementById('delete-note-btn').onclick = ()=>confirmDeleteNote(note);
+  
+  renderImgPreviews(); 
+  document.getElementById('close-note-modal').onclick = closeModal; 
+  document.getElementById('cancel-note-btn').onclick = closeModal;
+  document.getElementById('save-note-btn').onclick = (e) => saveNote(e.target.dataset.folder);
+  if(document.getElementById('delete-note-btn')) document.getElementById('delete-note-btn').onclick = ()=>confirmDeleteNote(note, targetFolderId);
+
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('note-img-input');
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+  fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFiles(e.target.files); });
 }
 
 function renderImgPreviews(){
@@ -795,32 +1052,34 @@ function renderImgPreviews(){
   wrap.querySelectorAll('.img-remove').forEach(btn=>{ btn.addEventListener('click', ()=>{ pendingImages.splice(parseInt(btn.dataset.i),1); renderImgPreviews(); }); });
 }
 
-async function handleImageInput(e){
-  const files = Array.from(e.target.files || []); if(!files.length) return;
+async function handleFiles(filesArray){
+  const files = Array.from(filesArray || []); if(!files.length) return;
   showToast('جاري رفع الصور ومزامنتها...');
   for(const file of files){
+    if(!file.type.startsWith('image/')) continue;
     try{
       const publicUrl = await window.uploadFileToStorage(file);
       pendingImages.push({ id: uid('img'), data: publicUrl });
     }catch(err){ showToast('فشل في رفع أحد الصور'); }
   }
-  renderImgPreviews(); e.target.value = '';
+  renderImgPreviews(); 
 }
 
-async function saveNote(){
+async function saveNote(targetFolderId){
   const title = document.getElementById('note-title-input').value.trim(); const content = document.getElementById('note-content-input').value.trim();
   if(!title && !content && pendingImages.length===0){ showToast('النوت فارغة'); return; }
-  const notes = await sGet('app:notes:' + currentFolderId, true) || [];
+  const notes = await sGet('app:notes:' + targetFolderId, true) || [];
   if(editingNote){
     const idx = notes.findIndex(n=>n.id===editingNote.id);
     if(idx > -1){ notes[idx] = { ...notes[idx], title, content, images: pendingImages, updatedAt: Date.now() }; }
   } else {
-    notes.push({ id: uid('n'), title, content, images: pendingImages, createdAt: Date.now(), updatedAt: Date.now() });
+    notes.push({ id: uid('n'), title, content, images: pendingImages, isFavorite: false, createdAt: Date.now(), updatedAt: Date.now() });
   }
-  notesByFolder[currentFolderId] = notes; await sSet('app:notes:' + currentFolderId, notes, true); closeModal(); renderSidebar(); renderMain(); showToast('تم الحفظ');
+  notesByFolder[targetFolderId] = notes; await sSet('app:notes:' + targetFolderId, notes, true); 
+  await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('تم الحفظ');
 }
 
-function confirmDeleteNote(note){
+function confirmDeleteNote(note, targetFolderId){
   showModal(`
     <div class="modal-header"><h3>🗑 حذف النوت</h3></div>
     <div class="modal-body"><div class="confirm-text">سيتم حذف النوت نهائياً من الموقع المشترك.</div></div>
@@ -828,21 +1087,21 @@ function confirmDeleteNote(note){
   `);
   document.getElementById('cancel-del-note').onclick = closeModal;
   document.getElementById('confirm-del-note').onclick = async ()=>{
-    const notes = await sGet('app:notes:' + currentFolderId, true) || []; const updated = notes.filter(n=>n.id !== note.id);
-    notesByFolder[currentFolderId] = updated; await sSet('app:notes:' + currentFolderId, updated, true); closeModal(); renderSidebar(); renderMain(); showToast('تم الحذف');
+    const notes = await sGet('app:notes:' + targetFolderId, true) || []; const updated = notes.filter(n=>n.id !== note.id);
+    notesByFolder[targetFolderId] = updated; await sSet('app:notes:' + targetFolderId, updated, true);
+    await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('تم الحذف');
   };
 }
 
-function showModal(innerHtml){ const root = document.getElementById('modal-root'); root.innerHTML = `<div class="overlay" id="modal-overlay"><div class="modal">${innerHtml}</div></div>`; document.getElementById('modal-overlay').addEventListener('mousedown', (e)=>{ if(e.target.id === 'modal-overlay') closeModal(); }); }
-function closeModal(){ document.getElementById('modal-root').innerHTML = ''; editingNote = null; pendingImages = []; }
-function openLightbox(src){ const root = document.getElementById('modal-root'); const lb = document.createElement('div'); lb.className = 'lightbox'; lb.innerHTML = `<img src="${src}">`; lb.addEventListener('click', ()=>lb.remove()); root.appendChild(lb); }
+function showModal(innerHtml){ const root = document.getElementById('modal-root'); if(!root) return; root.innerHTML = `<div class="overlay" id="modal-overlay"><div class="modal">${innerHtml}</div></div>`; document.getElementById('modal-overlay').addEventListener('mousedown', (e)=>{ if(e.target.id === 'modal-overlay') closeModal(); }); }
+function closeModal(){ const root = document.getElementById('modal-root'); if(root) root.innerHTML = ''; editingNote = null; pendingImages = []; }
+function openLightbox(src){ const root = document.getElementById('modal-root'); if(!root) return; const lb = document.createElement('div'); lb.className = 'lightbox'; lb.innerHTML = `<img src="${src}">`; lb.addEventListener('click', ()=>lb.remove()); root.appendChild(lb); }
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ const lb = document.querySelector('.lightbox'); if(lb){lb.remove(); return;} if(document.getElementById('modal-overlay')) closeModal(); } });
 
 function openSidebarMobile(){ document.body.classList.add('sidebar-open'); }
 function closeSidebarMobile(){ document.body.classList.remove('sidebar-open'); }
 
-document.getElementById('refresh-folders-btn').addEventListener('click', async ()=>{ await refreshFolders(); await preloadAllCounts(); if(currentFolderId) await loadNotesForFolder(currentFolderId, true); renderSidebar(); renderMain(); showToast('تم التحديث'); });
-document.getElementById('refresh-notes-btn').addEventListener('click', async ()=>{ if(!currentFolderId) return; await loadNotesForFolder(currentFolderId, true); renderMain(); showToast('تم التحديث'); });
+document.getElementById('refresh-folders-btn').addEventListener('click', async ()=>{ await refreshFolders(); await preloadAllCounts(); if(currentFolderId && currentFolderId !== 'global-favs' && currentFolderId !== 'global-recent') await loadNotesForFolder(currentFolderId, true); renderSidebar(); renderMain(); showToast('تم تحديث كل البيانات المزامنة ومراجعتها'); });
 document.getElementById('theme-toggle').addEventListener('click', async ()=>{ theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); await sSet('app:theme', theme, false, true); });
 </script>
 
@@ -850,7 +1109,6 @@ document.getElementById('theme-toggle').addEventListener('click', async ()=>{ th
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import { getDatabase, ref, get as dbGet, set as dbSet, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
-// إعدادات الـ Firebase المشترك الخاصة بمشروعك
 const firebaseConfig = {
   apiKey: "AIzaSyDFXCcd5HxZRRfH9lTSw_I8dHJO4rKvmNk",
   authDomain: "exam-notes-3ssam.firebaseapp.com",
@@ -864,24 +1122,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// مفتاح ImgBB الخاص بك والمربوط بحسابك مباشرة
 const IMGBB_API_KEY = "6910c01e73136ff4c36332af28e39b44";
 
 window.uploadFileToStorage = async function(file) {
   const formData = new FormData();
   formData.append("image", file);
-
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-    method: "POST",
-    body: formData
-  });
-
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
   if (!response.ok) throw new Error("ImgBB upload failed");
   const json = await response.json();
-  
-  if (json && json.data && json.data.url) {
-    return json.data.url; // اللينك السريع والمباشر المولد من حسابك
-  }
+  if (json && json.data && json.data.url) return json.data.url;
   throw new Error("Invalid ImgBB response");
 };
 
