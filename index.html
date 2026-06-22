@@ -438,14 +438,8 @@
 /* =====================================================================
    This is a SHARED site: folders + notes are stored with shared=true,
    so every visitor with the link reads and writes the same data via
-   Firebase. Theme preference is stored personally (shared=false) per
+   Supabase. Theme preference is stored personally (shared=false) per
    visitor in localStorage only.
-
-   IMPORTANT: if Firebase can't be reached (wrong Rules, no internet),
-   shared reads/writes now fail LOUDLY (toast + the "conn-status" badge
-   in the sidebar) instead of silently falling back to this device's
-   own localStorage — that old fallback is what made every visitor see
-   only their own private notes instead of the shared ones.
    ===================================================================== */
 
 /* ===================== Storage helpers ===================== */
@@ -464,7 +458,7 @@ function setConnStatus(ok){
     }
   }
   if(!ok){
-    showToast('تعذر الاتصال بقاعدة البيانات المشتركة (Firebase). راجع الإنترنت أو إعدادات Rules.');
+    showToast('تعذر الاتصال بقاعدة البيانات المشتركة (Supabase). راجع الإنترنت.');
   }
 }
 async function sGet(key, shared){
@@ -475,9 +469,6 @@ async function sGet(key, shared){
       return r ? JSON.parse(r.value) : null;
     }catch(e){
       console.error('[storage:get]', key, e);
-      // For SHARED keys we deliberately do NOT fall back to this device's local
-      // copy — that fallback used to hide Firebase errors and made every visitor
-      // see only their own browser's notes instead of the shared ones.
       if(shared){ setConnStatus(false); return null; }
     }
   }
@@ -630,9 +621,6 @@ async function loadNotesForFolder(folderId, force){
 }
 
 /* ===================== One-time migration ===================== */
-/* If this browser has folders saved from BEFORE Firebase was connected
-   (pure localStorage), and the shared database is currently empty,
-   offer to copy them up so every visitor sees them too. */
 async function maybeOfferMigration(){
   let localFolders = [];
   try{ localFolders = JSON.parse(localStorage.getItem('app:folders') || 'null') || []; }catch(e){}
@@ -746,7 +734,6 @@ function renderSidebar(){
 }
 
 async function addFolder(name){
-  // re-fetch fresh first, in case another visitor added a folder meanwhile
   const fresh = await sGet('app:folders', true) || [];
   const f = { id: uid('f'), name, color: '', createdAt: Date.now() };
   f.color = colorForFolder(f.id);
@@ -868,7 +855,7 @@ async function deleteFolder(folderId){
 
 async function selectFolder(folderId){
   currentFolderId = folderId;
-  await loadNotesForFolder(folderId, true);   // always pull latest from other visitors
+  await loadNotesForFolder(folderId, true);
   renderSidebar();
   renderMain();
   closeSidebarMobile();
@@ -948,7 +935,6 @@ function renderMain(){
 
 /* ===================== Note view (read-only) ===================== */
 async function openNoteViewModal(note){
-  // pull the freshest copy first in case another visitor edited/deleted it
   await loadNotesForFolder(currentFolderId, true);
   renderMain();
   const fresh = (notesByFolder[currentFolderId] || []).find(n => n.id === note.id);
@@ -994,7 +980,6 @@ async function openNoteViewModal(note){
 
 /* ===================== Note modal (edit / create) ===================== */
 async function openNoteEditModal(note){
-  // pull the freshest list first so numbering/edits don't clash with other visitors
   await loadNotesForFolder(currentFolderId, true);
   renderMain();
 
@@ -1120,7 +1105,6 @@ async function saveNote(){
     showToast('اكتب حاجة في النوت الأول');
     return;
   }
-  // re-fetch fresh right before writing to minimize clobbering other visitors' edits
   const notes = await sGet('app:notes:' + currentFolderId, true) || [];
   if(editingNote){
     const idx = notes.findIndex(n=>n.id===editingNote.id);
@@ -1220,43 +1204,67 @@ document.getElementById('refresh-notes-btn').addEventListener('click', async ()=
 document.getElementById('theme-toggle').addEventListener('click', async ()=>{
   theme = theme === 'dark' ? 'light' : 'dark';
   applyTheme();
-  await sSet('app:theme', theme, false, true);   // personal, silent on failure
+  await sSet('app:theme', theme, false, true);
 });
 
-// init moved to firebase bootstrap
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getDatabase, ref, get as dbGet, set as dbSet, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
-const firebaseConfig={
-apiKey:"AIzaSyDFXCcd5HxZRRfH9lTSw_I8dHJO4rKvmNk",
-authDomain:"exam-notes-3ssam.firebaseapp.com",
-databaseURL:"https://exam-notes-3ssam-default-rtdb.europe-west1.firebasedatabase.app",
-projectId:"exam-notes-3ssam",
-storageBucket:"exam-notes-3ssam.firebasestorage.app",
-messagingSenderId:"901496869239",
-appId:"1:901496869239:web:6d816826e466cefa1d5172"
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const supabaseUrl = "https://qpejpssnbbxbvnlukecf.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZWpwc3NuYmJ4YnZubHVrZWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDk1NTQsImV4cCI6MjA5NzcyNTU1NH0.gynt8AAynrawTLKjjl0aAhUq3tiwtBfClEK51FdwixM";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+window.storage = {
+  async get(key, shared) {
+    if (!shared) {
+      const v = localStorage.getItem(key);
+      return v ? { value: v } : null;
+    }
+    
+    const { data, error } = await supabase
+      .from('kv_store')
+      .select('data')
+      .eq('id', key)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    
+    return { value: JSON.stringify(data.data) };
+  },
+
+  async set(key, value, shared) {
+    if (!shared) {
+      localStorage.setItem(key, value);
+      return;
+    }
+
+    const parsedValue = JSON.parse(value);
+    const { error } = await supabase
+      .from('kv_store')
+      .upsert({ id: key, data: parsedValue });
+
+    if (error) throw error;
+  },
+
+  async delete(key, shared) {
+    if (!shared) {
+      localStorage.removeItem(key);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('kv_store')
+      .delete()
+      .eq('id', key);
+
+    if (error) throw error;
+  }
 };
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
-window.storage={
-async get(key,shared){
-if(!shared){const v=localStorage.getItem(key);return v?{value:v}:null;}
-const p=key.replace(/:/g,'/');
-const s=await dbGet(ref(db,p));
-return s.exists()?{value:JSON.stringify(s.val())}:null;
-},
-async set(key,value,shared){
-if(!shared){localStorage.setItem(key,value);return;}
-await dbSet(ref(db,key.replace(/:/g,'/')),JSON.parse(value));
-},
-async delete(key,shared){
-if(!shared){localStorage.removeItem(key);return;}
-await remove(ref(db,key.replace(/:/g,'/')));
-}
-};
-if(typeof init==='function') init();
+
+if (typeof init === 'function') init();
 </script>
 </body>
 </html>
