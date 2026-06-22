@@ -329,7 +329,6 @@
     background:rgba(0,0,0,0.65);color:#fff;border:none;font-size:11px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
   }
-  .confirm-text{font-size:14px;color:var(--text-dim);line-height:1.7;}
 
   /* note view (read-only) */
   .view-content{
@@ -435,31 +434,20 @@
 <div id="toast" class="toast"></div>
 
 <script>
-/* =====================================================================
-   This is a SHARED site: folders + notes are stored with shared=true,
-   so every visitor with the link reads and writes the same data via
-   Supabase. Theme preference is stored personally (shared=false) per
-   visitor in localStorage only.
-   ===================================================================== */
-
-/* ===================== Storage helpers ===================== */
-let connOk = null; // null = unknown yet, true/false after first shared call
+let connOk = null;
 function setConnStatus(ok){
   if(connOk === ok) return;
   connOk = ok;
   const el = document.getElementById('conn-status');
   if(el){
-    if(ok){
-      el.style.display = 'none';
-    } else {
+    if(ok){ el.style.display = 'none'; } 
+    else {
       el.style.display = '';
       el.textContent = 'Offline — notes are not syncing right now';
       el.style.color = 'var(--danger)';
     }
   }
-  if(!ok){
-    showToast('تعذر الاتصال بقاعدة البيانات المشتركة (Supabase). راجع الإنترنت.');
-  }
+  if(!ok){ showToast('تعذر الاتصال بقاعدة البيانات المشتركة (Firebase). راجع الإنترنت.'); }
 }
 async function sGet(key, shared){
   if(window.storage){
@@ -472,10 +460,7 @@ async function sGet(key, shared){
       if(shared){ setConnStatus(false); return null; }
     }
   }
-  try{
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : null;
-  }catch(e){ return null; }
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }catch(e){ return null; }
 }
 async function sSet(key, value, shared, silent){
   if(window.storage){
@@ -488,13 +473,7 @@ async function sSet(key, value, shared, silent){
       if(shared){ setConnStatus(false); return false; }
     }
   }
-  try{
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  }catch(e){
-    if(!silent) console.error(e);
-    return false;
-  }
+  try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch(e){ return false; }
 }
 async function sDelete(key, shared){
   if(window.storage){
@@ -510,9 +489,8 @@ async function sDelete(key, shared){
   try{ localStorage.removeItem(key); }catch(e){}
 }
 
-/* ===================== State ===================== */
-let folders = [];          // [{id,name,color,createdAt}]  -- SHARED
-let notesByFolder = {};    // {folderId: [note,...]}        -- SHARED
+let folders = [];
+let notesByFolder = {};
 let currentFolderId = null;
 let theme = 'dark';
 let editingNote = null;
@@ -546,17 +524,14 @@ function showToast(msg){
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-/* ===================== Init ===================== */
 async function init(){
-  const savedTheme = await sGet('app:theme', false);   // personal
+  const savedTheme = await sGet('app:theme', false);
   theme = savedTheme || 'dark';
   applyTheme();
   setupBackgroundMotion();
   setupSearch();
-
   await refreshFolders();
   await preloadAllCounts();
-
   renderSidebar();
   renderMain();
   await maybeOfferMigration();
@@ -594,45 +569,35 @@ function setupSearch(){
   });
   input.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape'){
-      input.value = '';
-      searchQuery = '';
-      renderMain();
-      input.blur();
+      input.value = ''; searchQuery = ''; renderMain(); input.blur();
     }
   });
 }
 
 async function refreshFolders(){
-  const data = await sGet('app:folders', true);   // shared
+  const data = await sGet('app:folders', true);
   folders = data || [];
 }
-
 async function preloadAllCounts(){
   await Promise.all(folders.map(async folder=>{
     const data = await sGet('app:notes:' + folder.id, true);
     notesByFolder[folder.id] = data || [];
   }));
 }
-
 async function loadNotesForFolder(folderId, force){
   if(notesByFolder[folderId] && !force) return;
-  const data = await sGet('app:notes:' + folderId, true);   // shared
+  const data = await sGet('app:notes:' + folderId, true);
   notesByFolder[folderId] = data || [];
 }
 
-/* ===================== One-time migration ===================== */
 async function maybeOfferMigration(){
   let localFolders = [];
   try{ localFolders = JSON.parse(localStorage.getItem('app:folders') || 'null') || []; }catch(e){}
   if(!localFolders.length || folders.length) return;
-
   showModal(`
     <div class="modal-header"><h3>📦 نقل النوتس المحفوظة على جهازك</h3></div>
     <div class="modal-body">
-      <div class="confirm-text">
-        لاقينا ${localFolders.length} مجلد محفوظين على المتصفح ده من قبل ربط الموقع بقاعدة البيانات المشتركة.
-        تحب ننقلهم للموقع المشترك عشان يظهروا لأي حد يفتح اللينك (زي صاحبك)؟
-      </div>
+      <div class="confirm-text">لاقينا ${localFolders.length} مجلد محفوظين على المتصفح ده. تحب ننقلهم للموقع المشترك؟</div>
     </div>
     <div class="modal-footer">
       <button class="btn-ghost" id="skip-migrate">تجاهل</button>
@@ -645,37 +610,27 @@ async function maybeOfferMigration(){
     await migrateLocalToShared(localFolders);
   };
 }
-
 async function migrateLocalToShared(localFolders){
   showToast('بننقل النوتس...');
   const ok = await sSet('app:folders', localFolders, true);
-  if(!ok){
-    showToast('فشل النقل — مفيش اتصال بقاعدة البيانات المشتركة دلوقتي');
-    return;
-  }
+  if(!ok){ showToast('فشل النقل — مفيش اتصال بقاعدة البيانات'); return; }
   for(const f of localFolders){
     let localNotes = [];
     try{ localNotes = JSON.parse(localStorage.getItem('app:notes:' + f.id) || 'null') || []; }catch(e){}
     if(localNotes.length) await sSet('app:notes:' + f.id, localNotes, true);
   }
   await refreshFolders();
-  if(folders.length){
-    currentFolderId = folders[0].id;
-    await loadNotesForFolder(currentFolderId, true);
-  }
-  renderSidebar();
-  renderMain();
-  showToast('تم نقل النوتس للموقع المشترك ✅');
+  if(folders.length){ currentFolderId = folders[0].id; await loadNotesForFolder(currentFolderId, true); }
+  renderSidebar(); renderMain(); showToast('تم نقل النوتس بنجاح ✅');
 }
 
-/* ===================== Sidebar ===================== */
 function renderSidebar(){
   const list = document.getElementById('folder-list');
   list.innerHTML = '';
   if(folders.length === 0){
     const hint = document.createElement('div');
     hint.style.cssText = 'font-size:13px;color:var(--text-faint);padding:8px 4px;line-height:1.7;';
-    hint.textContent = 'لسه مفيش مجلدات. اعمل أول مجلد، مثلاً "هيماتولوجي".';
+    hint.textContent = 'لسه مفيش مجلدات. اعمل أول مجلد جديد.';
     list.appendChild(hint);
   }
   folders.forEach(f=>{
@@ -686,21 +641,15 @@ function renderSidebar(){
       <div class="folder-avatar" style="${f.image ? `background-image:url('${f.image}')` : `background:${f.color}`}">${f.image ? '' : escapeHtml(f.name.trim()[0] || '#')}</div>
       <div class="folder-name">${escapeHtml(f.name)}</div>
       <div class="folder-count">${count}</div>
-      <button class="folder-edit" title="Edit Folder">✏️</button>
-      <button class="folder-del" title="Delete Folder">🗑️</button>
+      <button class="folder-edit" title="تعديل">✏️</button>
+      <button class="folder-del" title="حذف">🗑️</button>
     `;
     item.addEventListener('click', (e)=>{
       if(e.target.closest('.folder-del') || e.target.closest('.folder-edit')) return;
       selectFolder(f.id);
     });
-    item.querySelector('.folder-edit').addEventListener('click', (e)=>{
-      e.stopPropagation();
-      openEditFolderModal(f);
-    });
-    item.querySelector('.folder-del').addEventListener('click', (e)=>{
-      e.stopPropagation();
-      confirmDeleteFolder(f);
-    });
+    item.querySelector('.folder-edit').addEventListener('click', (e)=>{ e.stopPropagation(); openEditFolderModal(f); });
+    item.querySelector('.folder-del').addEventListener('click', (e)=>{ e.stopPropagation(); confirmDeleteFolder(f); });
     list.appendChild(item);
   });
 
@@ -708,111 +657,62 @@ function renderSidebar(){
   if(addFolderOpen){
     addWrap.innerHTML = `
       <form class="add-folder-form" id="add-folder-form">
-        <input type="text" id="new-folder-input" placeholder="اسم المجلد، مثلاً هيماتولوجي" maxlength="40" autocomplete="off">
+        <input type="text" id="new-folder-input" placeholder="اسم المجلد الجديد" maxlength="40" autocomplete="off">
         <button type="submit">إضافة</button>
       </form>
     `;
     const input = document.getElementById('new-folder-input');
     setTimeout(()=>input.focus(), 0);
     document.getElementById('add-folder-form').addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const name = input.value.trim();
-      addFolderOpen = false;
-      if(name) addFolder(name);
-      else renderSidebar();
-    });
-    input.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape'){ addFolderOpen=false; renderSidebar(); }
+      e.preventDefault(); const name = input.value.trim(); addFolderOpen = false;
+      if(name) addFolder(name); else renderSidebar();
     });
   } else {
     addWrap.innerHTML = `<button class="add-folder-btn" id="open-add-folder">＋ مجلد جديد</button>`;
-    document.getElementById('open-add-folder').addEventListener('click', ()=>{
-      addFolderOpen = true;
-      renderSidebar();
-    });
+    document.getElementById('open-add-folder').addEventListener('click', ()=>{ addFolderOpen = true; renderSidebar(); });
   }
 }
 
 async function addFolder(name){
   const fresh = await sGet('app:folders', true) || [];
   const f = { id: uid('f'), name, color: '', createdAt: Date.now() };
-  f.color = colorForFolder(f.id);
-  fresh.push(f);
-  folders = fresh;
-  notesByFolder[f.id] = [];
-  await sSet('app:folders', folders, true);
-  await selectFolder(f.id);
+  f.color = colorForFolder(f.id); fresh.push(f); folders = fresh;
+  notesByFolder[f.id] = []; await sSet('app:folders', folders, true); await selectFolder(f.id);
 }
 
 function openEditFolderModal(folder){
   let pendingFolderImage = folder.image || null;
   showModal(`
-    <div class="modal-header">
-      <h3>✏️ تعديل المجلد</h3>
-      <button class="icon-btn" id="close-edit-folder-modal">✕</button>
-    </div>
+    <div class="modal-header"><h3>✏️ تعديل المجلد</h3><button class="icon-btn" id="close-edit-folder-modal">✕</button></div>
     <div class="modal-body">
-      <div>
-        <label class="field-label">اسم المجلد</label>
-        <input type="text" class="text-input" id="edit-folder-name" maxlength="40" value="${escapeHtml(folder.name)}">
-      </div>
+      <div><label class="field-label">اسم المجلد</label><input type="text" class="text-input" id="edit-folder-name" maxlength="40" value="${escapeHtml(folder.name)}"></div>
       <div>
         <label class="field-label">شعار المجلد</label>
         <div style="display:flex;align-items:center;gap:12px;">
           <div class="folder-avatar" id="edit-folder-avatar-preview" style="width:48px;height:48px;font-size:18px;${pendingFolderImage ? `background-image:url('${pendingFolderImage}')` : `background:${folder.color}`}">${pendingFolderImage ? '' : escapeHtml(folder.name.trim()[0] || '#')}</div>
-          <label class="img-upload-btn">
-            🖼️ تغيير الصورة
-            <input type="file" accept="image/*" id="edit-folder-img-input" style="display:none">
-          </label>
+          <label class="img-upload-btn">🖼️ تغيير الصورة<input type="file" accept="image/*" id="edit-folder-img-input" style="display:none"></label>
           ${pendingFolderImage ? '<button class="btn-ghost" id="remove-folder-img-btn">إزالة الصورة</button>' : ''}
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <div></div>
-      <div class="footer-right">
-        <button class="btn-ghost" id="cancel-edit-folder">إلغاء</button>
-        <button class="btn-primary" id="save-edit-folder">حفظ</button>
-      </div>
-    </div>
+    <div class="modal-footer"><div></div><div class="footer-right"><button class="btn-ghost" id="cancel-edit-folder">إلغاء</button><button class="btn-primary" id="save-edit-folder">حفظ</button></div></div>
   `);
-
   document.getElementById('close-edit-folder-modal').onclick = closeModal;
   document.getElementById('cancel-edit-folder').onclick = closeModal;
-
   document.getElementById('edit-folder-img-input').addEventListener('change', async (e)=>{
-    const file = e.target.files && e.target.files[0];
-    if(!file) return;
+    const file = e.target.files && e.target.files[0]; if(!file) return;
     try{
-      pendingFolderImage = await resizeImage(file);
+      showToast('جاري رفع صورة المجلد...');
+      pendingFolderImage = await window.uploadFileToStorage(file);
       openEditFolderModal({ ...folder, image: pendingFolderImage });
-    }catch(err){
-      console.error('folder image resize failed', err);
-    }
+    }catch(err){ showToast('فشل رفع الصورة'); }
   });
-
-  const removeBtn = document.getElementById('remove-folder-img-btn');
-  if(removeBtn){
-    removeBtn.onclick = ()=>{
-      pendingFolderImage = null;
-      openEditFolderModal({ ...folder, image: null });
-    };
-  }
-
+  if(document.getElementById('remove-folder-img-btn')){ document.getElementById('remove-folder-img-btn').onclick = ()=>{ openEditFolderModal({ ...folder, image: null }); }; }
   document.getElementById('save-edit-folder').onclick = async ()=>{
-    const name = document.getElementById('edit-folder-name').value.trim();
-    if(!name){ showToast('اكتب اسم للمجلد'); return; }
-    const fresh = await sGet('app:folders', true) || [];
-    const idx = fresh.findIndex(x=>x.id===folder.id);
-    if(idx > -1){
-      fresh[idx] = { ...fresh[idx], name, image: pendingFolderImage };
-    }
-    folders = fresh;
-    await sSet('app:folders', folders, true);
-    closeModal();
-    renderSidebar();
-    renderMain();
-    showToast('تم تعديل المجلد');
+    const name = document.getElementById('edit-folder-name').value.trim(); if(!name){ showToast('اكتب اسم للمجلد'); return; }
+    const fresh = await sGet('app:folders', true) || []; const idx = fresh.findIndex(x=>x.id===folder.id);
+    if(idx > -1){ fresh[idx] = { ...fresh[idx], name, image: pendingFolderImage }; }
+    folders = fresh; await sSet('app:folders', folders, true); closeModal(); renderSidebar(); renderMain(); showToast('تم تعديل المجلد');
   };
 }
 
@@ -820,447 +720,186 @@ function confirmDeleteFolder(folder){
   const count = (notesByFolder[folder.id] || []).length;
   showModal(`
     <div class="modal-header"><h3>🗑 حذف "${escapeHtml(folder.name)}"</h3></div>
-    <div class="modal-body">
-      <div class="confirm-text">
-        هتحذف المجلد ده وكل النوتس اللي فيه${count ? ` (${count} نوت)` : ''} لكل اللي بيستخدموا اللينك.
-        الخطوة دي ما تتراجعش فيها.
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost" id="cancel-del-folder">إلغاء</button>
-      <button class="btn-danger-ghost" id="confirm-del-folder">حذف نهائي</button>
-    </div>
+    <div class="modal-body"><div class="confirm-text">سيتم حذف المجلد نهائياً وكل النوتس التي بداخله (${count} نوت).</div></div>
+    <div class="modal-footer"><button class="btn-ghost" id="cancel-del-folder">إلغاء</button><button class="btn-danger-ghost" id="confirm-del-folder">حذف نهائي</button></div>
   `);
   document.getElementById('cancel-del-folder').onclick = closeModal;
-  document.getElementById('confirm-del-folder').onclick = async ()=>{
-    await deleteFolder(folder.id);
-    closeModal();
-  };
+  document.getElementById('confirm-del-folder').onclick = async ()=>{ await deleteFolder(folder.id); closeModal(); };
 }
-
 async function deleteFolder(folderId){
-  const fresh = await sGet('app:folders', true) || [];
-  folders = fresh.filter(f=>f.id !== folderId);
-  delete notesByFolder[folderId];
-  await sSet('app:folders', folders, true);
-  await sDelete('app:notes:' + folderId, true);
-  if(currentFolderId === folderId){
-    currentFolderId = folders.length ? folders[0].id : null;
-    if(currentFolderId) await loadNotesForFolder(currentFolderId, true);
-  }
-  renderSidebar();
-  renderMain();
-  showToast('تم حذف المجلد');
+  const fresh = await sGet('app:folders', true) || []; folders = fresh.filter(f=>f.id !== folderId);
+  delete notesByFolder[folderId]; await sSet('app:folders', folders, true); await sDelete('app:notes:' + folderId, true);
+  if(currentFolderId === folderId){ currentFolderId = folders.length ? folders[0].id : null; if(currentFolderId) await loadNotesForFolder(currentFolderId, true); }
+  renderSidebar(); renderMain(); showToast('تم حذف المجلد');
 }
+async function selectFolder(folderId){ currentFolderId = folderId; await loadNotesForFolder(folderId, true); renderSidebar(); renderMain(); closeSidebarMobile(); }
 
-async function selectFolder(folderId){
-  currentFolderId = folderId;
-  await loadNotesForFolder(folderId, true);
-  renderSidebar();
-  renderMain();
-  closeSidebarMobile();
-}
-
-/* ===================== Main / Notes ===================== */
 function renderMain(){
-  const titleEl = document.getElementById('folder-title');
-  const subEl = document.getElementById('folder-sub');
-  const grid = document.getElementById('notes-grid');
-  const newBtn = document.getElementById('new-note-btn');
-  const welcome = document.getElementById('welcome-banner');
-  grid.innerHTML = '';
-
+  const titleEl = document.getElementById('folder-title'); const subEl = document.getElementById('folder-sub');
+  const grid = document.getElementById('notes-grid'); const newBtn = document.getElementById('new-note-btn');
+  const welcome = document.getElementById('welcome-banner'); grid.innerHTML = '';
   if(welcome) welcome.style.display = currentFolderId ? 'none' : 'block';
-
   if(!currentFolderId){
-    titleEl.textContent = 'اختار مجلد';
-    subEl.textContent = '';
-    newBtn.disabled = true;
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1">
-        <div class="big">🗂️</div>
-        <h3>اختار أو اعمل مجلد الأول</h3>
-        <p>استخدم زرار "＋ مجلد جديد" في الشريط الجانبي عشان تبدأ، مثلاً مجلد اسمه هيماتولوجي.</p>
-      </div>`;
-    return;
+    titleEl.textContent = 'اختار مجلد'; subEl.textContent = ''; newBtn.disabled = true;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🗂️</div><h3>اختار أو اعمل مجلد الأول</h3><p>استخدم زرار مجلد جديد في الشريط الجانبي لبدء الكتابة.</p></div>`; return;
   }
-
-  const folder = folders.find(f=>f.id===currentFolderId);
-  const allNotes = notesByFolder[currentFolderId] || [];
-  const notes = searchQuery
-    ? allNotes.filter(n=>{
-        const title = (n.title || '').toLowerCase();
-        const content = (n.content || '').toLowerCase();
-        return title.includes(searchQuery) || content.includes(searchQuery);
-      })
-    : allNotes;
-
-  titleEl.textContent = folder ? folder.name : '';
-  subEl.textContent = searchQuery
-    ? (notes.length ? `${notes.length} نتيجة مطابقة` : 'لا توجد نتائج مطابقة')
-    : (notes.length ? `${notes.length} نوت` : 'لسه مفيش نوتس');
-  newBtn.disabled = false;
-
+  const folder = folders.find(f=>f.id===currentFolderId); const allNotes = notesByFolder[currentFolderId] || [];
+  const notes = searchQuery ? allNotes.filter(n=> (n.title||'').toLowerCase().includes(searchQuery) || (n.content||'').toLowerCase().includes(searchQuery) ) : allNotes;
+  titleEl.textContent = folder ? folder.name : ''; subEl.textContent = notes.length ? `${notes.length} نوت` : 'لسه مفيش نوتس'; newBtn.disabled = false;
   if(notes.length === 0){
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1">
-        <div class="big">🔎</div>
-        <h3>${searchQuery ? 'مفيش نتائج للبحث' : 'لسه مفيش نوتس هنا'}</h3>
-        <p>${searchQuery ? 'جرّب كلمة تانية أو امسح البحث.' : `دوس على "＋ نوت جديدة" وابدأ نوت رقم 1 في مجلد ${escapeHtml(folder.name)}.`}</p>
-      </div>`;
-    return;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🔎</div><h3>مفيش نوتس هنا</h3></div>`; return;
   }
-
   notes.forEach((note, idx)=>{
-    const card = document.createElement('div');
-    card.className = 'note-card';
-    const imgsHtml = (note.images && note.images.length)
-      ? `<div class="note-imgs">
-          ${note.images.slice(0,3).map(im=>`<img src="${im.data}">`).join('')}
-          ${note.images.length>3 ? `<div class="more-badge">+${note.images.length-3}</div>` : ''}
-        </div>` : '';
-    card.innerHTML = `
-      <div class="note-top">
-        <div class="note-badge">${idx+1}</div>
-        <div class="note-title">${escapeHtml(note.title) || 'بدون عنوان'}</div>
-      </div>
-      <div class="note-preview">${escapeHtml(note.content)}</div>
-      ${imgsHtml}
-      <div class="note-date">${formatDate(note.createdAt)}</div>
-    `;
-    card.addEventListener('click', ()=>openNoteViewModal(note));
-    grid.appendChild(card);
+    const card = document.createElement('div'); card.className = 'note-card';
+    const imgsHtml = (note.images && note.images.length) ? `<div class="note-imgs">${note.images.slice(0,3).map(im=>`<img src="${im.data}">`).join('')}${note.images.length>3 ? `<div class="more-badge">+${note.images.length-3}</div>`:''}</div>` : '';
+    card.innerHTML = `<div class="note-top"><div class="note-badge">${idx+1}</div><div class="note-title">${escapeHtml(note.title) || 'بدون عنوان'}</div></div><div class="note-preview">${escapeHtml(note.content)}</div>${imgsHtml}<div class="note-date">${formatDate(note.createdAt)}</div>`;
+    card.addEventListener('click', ()=>openNoteViewModal(note)); grid.appendChild(card);
   });
 }
 
-/* ===================== Note view (read-only) ===================== */
 async function openNoteViewModal(note){
-  await loadNotesForFolder(currentFolderId, true);
-  renderMain();
-  const fresh = (notesByFolder[currentFolderId] || []).find(n => n.id === note.id);
-  if(!fresh){ showToast('النوت ده مش موجود دلوقتي'); return; }
-  note = fresh;
-
-  const folder = folders.find(f=>f.id===currentFolderId);
-  const notes = notesByFolder[currentFolderId] || [];
-  const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
-  const imgsHtml = (note.images && note.images.length)
-    ? `<div class="view-imgs">${note.images.map(im=>`<img src="${im.data}" class="view-img" data-src="${im.data}">`).join('')}</div>`
-    : '';
-
+  await loadNotesForFolder(currentFolderId, true); renderMain();
+  const fresh = (notesByFolder[currentFolderId] || []).find(n => n.id === note.id); if(!fresh){ showToast('النوت مش موجود'); return; } note = fresh;
+  const folder = folders.find(f=>f.id===currentFolderId); const notes = notesByFolder[currentFolderId] || []; const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
+  const imgsHtml = (note.images && note.images.length) ? `<div class="view-imgs">${note.images.map(im=>`<img src="${im.data}" class="view-img" data-src="${im.data}">`).join('')}</div>` : '';
   showModal(`
-    <div class="modal-header">
-      <h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span>
-        ${escapeHtml(note.title) || 'بدون عنوان'} — ${escapeHtml(folder ? folder.name : '')}
-      </h3>
-      <button class="icon-btn" id="close-view-modal">✕</button>
-    </div>
-    <div class="modal-body">
-      ${note.content ? `<div class="view-content">${escapeHtml(note.content)}</div>` : ''}
-      ${imgsHtml}
-      <div class="note-date">${formatDate(note.createdAt)}${note.updatedAt && note.updatedAt!==note.createdAt ? ' • آخر تعديل ' + formatDate(note.updatedAt) : ''}</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-danger-ghost" id="delete-note-view-btn">حذف النوت</button>
-      <div class="footer-right">
-        <button class="btn-ghost" id="close-view-btn">إغلاق</button>
-        <button class="btn-primary" id="edit-note-btn">✏️ تعديل</button>
-      </div>
-    </div>
+    <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'بدون عنوان'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
+    <div class="modal-body">${note.content ? `<div class="view-content">${escapeHtml(note.content)}</div>` : ''}${imgsHtml}<div class="note-date">${formatDate(note.createdAt)}</div></div>
+    <div class="modal-footer"><button class="btn-danger-ghost" id="delete-note-view-btn">حذف النوت</button><div class="footer-right"><button class="btn-ghost" id="close-view-btn">إغلاق</button><button class="btn-primary" id="edit-note-btn">✏️ تعديل</button></div></div>
   `);
-
-  document.getElementById('close-view-modal').onclick = closeModal;
-  document.getElementById('close-view-btn').onclick = closeModal;
-  document.getElementById('edit-note-btn').onclick = ()=>openNoteEditModal(note);
-  document.getElementById('delete-note-view-btn').onclick = ()=>confirmDeleteNote(note);
-  document.querySelectorAll('.view-img').forEach(img=>{
-    img.addEventListener('click', ()=>openLightbox(img.dataset.src));
-  });
+  document.getElementById('close-view-modal').onclick = closeModal; document.getElementById('close-view-btn').onclick = closeModal;
+  document.getElementById('edit-note-btn').onclick = ()=>openNoteEditModal(note); document.getElementById('delete-note-view-btn').onclick = ()=>confirmDeleteNote(note);
+  document.querySelectorAll('.view-img').forEach(img=>{ img.addEventListener('click', ()=>openLightbox(img.dataset.src)); });
 }
 
-/* ===================== Note modal (edit / create) ===================== */
 async function openNoteEditModal(note){
-  await loadNotesForFolder(currentFolderId, true);
-  renderMain();
-
-  editingNote = note || null;
-  pendingImages = note ? JSON.parse(JSON.stringify(note.images||[])) : [];
-  const folder = folders.find(f=>f.id===currentFolderId);
-  const notes = notesByFolder[currentFolderId] || [];
-  const noteNumber = note ? (notes.findIndex(n=>n.id===note.id)+1) : (notes.length+1);
-
+  await loadNotesForFolder(currentFolderId, true); renderMain(); editingNote = note || null; pendingImages = note ? JSON.parse(JSON.stringify(note.images||[])) : [];
+  const folder = folders.find(f=>f.id===currentFolderId); const notes = notesByFolder[currentFolderId] || []; const noteNumber = note ? (notes.findIndex(n=>n.id===note.id)+1) : (notes.length+1);
   showModal(`
-    <div class="modal-header">
-      <h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span>
-        ${note ? 'تعديل النوت' : 'نوت جديدة'} — ${escapeHtml(folder ? folder.name : '')}
-      </h3>
-      <button class="icon-btn" id="close-note-modal">✕</button>
-    </div>
+    <div class="modal-header"><h3>${note ? 'تعديل النوت' : 'نوت جديدة'}</h3><button class="icon-btn" id="close-note-modal">✕</button></div>
     <div class="modal-body">
-      <div>
-        <label class="field-label">العنوان (اختياري)</label>
-        <input type="text" class="text-input" id="note-title-input" maxlength="120"
-          value="${escapeHtml(note ? note.title : '')}" placeholder="عنوان مختصر للنوت">
-      </div>
-      <div>
-        <label class="field-label">المحتوى</label>
-        <textarea class="text-input" id="note-content-input" placeholder="اكتب ملاحظتك هنا...">${escapeHtml(note ? note.content : '')}</textarea>
-      </div>
-      <div>
-        <label class="field-label">الصور</label>
-        <label class="img-upload-btn">
-          🖼️ إضافة صورة
-          <input type="file" accept="image/*" multiple id="note-img-input" style="display:none">
-        </label>
-        <div id="img-previews"></div>
-      </div>
+      <div><label class="field-label">العنوان</label><input type="text" class="text-input" id="note-title-input" maxlength="120" value="${escapeHtml(note ? note.title : '')}"></div>
+      <div><label class="field-label">المحتوى</label><textarea class="text-input" id="note-content-input">${escapeHtml(note ? note.content : '')}</textarea></div>
+      <div><label class="field-label">الصور</label><label class="img-upload-btn">🖼️ إضافة صورة<input type="file" accept="image/*" multiple id="note-img-input" style="display:none"></label><div id="img-previews"></div></div>
     </div>
-    <div class="modal-footer">
-      <div>
-        ${note ? '<button class="btn-danger-ghost" id="delete-note-btn">حذف النوت</button>' : ''}
-      </div>
-      <div class="footer-right">
-        <button class="btn-ghost" id="cancel-note-btn">إلغاء</button>
-        <button class="btn-primary" id="save-note-btn">حفظ</button>
-      </div>
-    </div>
+    <div class="modal-footer"><div>${note ? '<button class="btn-danger-ghost" id="delete-note-btn">حذف النوت</button>' : ''}</div><div class="footer-right"><button class="btn-ghost" id="cancel-note-btn">إلغاء</button><button class="btn-primary" id="save-note-btn">حفظ</button></div></div>
   `);
-
-  renderImgPreviews();
-
-  document.getElementById('close-note-modal').onclick = closeModal;
-  document.getElementById('cancel-note-btn').onclick = closeModal;
-  document.getElementById('note-img-input').addEventListener('change', handleImageInput);
-  document.getElementById('save-note-btn').onclick = saveNote;
-  const delBtn = document.getElementById('delete-note-btn');
-  if(delBtn) delBtn.onclick = ()=>confirmDeleteNote(note);
+  renderImgPreviews(); document.getElementById('close-note-modal').onclick = closeModal; document.getElementById('cancel-note-btn').onclick = closeModal;
+  document.getElementById('note-img-input').addEventListener('change', handleImageInput); document.getElementById('save-note-btn').onclick = saveNote;
+  if(document.getElementById('delete-note-btn')) document.getElementById('delete-note-btn').onclick = ()=>confirmDeleteNote(note);
 }
 
 function renderImgPreviews(){
-  const wrap = document.getElementById('img-previews');
-  if(!wrap) return;
-  wrap.innerHTML = pendingImages.map((im,i)=>`
-    <div class="img-preview">
-      <img src="${im.data}" data-i="${i}">
-      <button class="img-remove" data-i="${i}" title="حذف الصورة">✕</button>
-    </div>
-  `).join('');
-  wrap.querySelectorAll('.img-remove').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      pendingImages.splice(parseInt(btn.dataset.i),1);
-      renderImgPreviews();
-    });
-  });
-  wrap.querySelectorAll('img').forEach(img=>{
-    img.addEventListener('click', ()=>openLightbox(img.src));
-  });
+  const wrap = document.getElementById('img-previews'); if(!wrap) return;
+  wrap.innerHTML = pendingImages.map((im,i)=>`<div class="img-preview"><img src="${im.data}"><button class="img-remove" data-i="${i}">✕</button></div>`).join('');
+  wrap.querySelectorAll('.img-remove').forEach(btn=>{ btn.addEventListener('click', ()=>{ pendingImages.splice(parseInt(btn.dataset.i),1); renderImgPreviews(); }); });
 }
 
 async function handleImageInput(e){
-  const files = Array.from(e.target.files || []);
-  if(!files.length) return;
+  const files = Array.from(e.target.files || []); if(!files.length) return;
+  showToast('جاري رفع الصور ومزامنتها...');
   for(const file of files){
     try{
-      const data = await resizeImage(file);
-      pendingImages.push({ id: uid('img'), data });
-    }catch(err){
-      console.error('image resize failed', err);
-    }
+      const publicUrl = await window.uploadFileToStorage(file);
+      pendingImages.push({ id: uid('img'), data: publicUrl });
+    }catch(err){ showToast('فشل في رفع أحد الصور'); }
   }
-  renderImgPreviews();
-  e.target.value = '';
-}
-
-function resizeImage(file){
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      const img = new Image();
-      img.onload = ()=>{
-        const maxDim = 1100;
-        let { width, height } = img;
-        if(width > maxDim || height > maxDim){
-          const ratio = Math.min(maxDim/width, maxDim/height);
-          width = Math.round(width*ratio);
-          height = Math.round(height*ratio);
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
-      };
-      img.onerror = reject;
-      img.src = reader.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  renderImgPreviews(); e.target.value = '';
 }
 
 async function saveNote(){
-  const title = document.getElementById('note-title-input').value.trim();
-  const content = document.getElementById('note-content-input').value.trim();
-  if(!title && !content && pendingImages.length===0){
-    showToast('اكتب حاجة في النوت الأول');
-    return;
-  }
+  const title = document.getElementById('note-title-input').value.trim(); const content = document.getElementById('note-content-input').value.trim();
+  if(!title && !content && pendingImages.length===0){ showToast('النوت فارغة'); return; }
   const notes = await sGet('app:notes:' + currentFolderId, true) || [];
   if(editingNote){
     const idx = notes.findIndex(n=>n.id===editingNote.id);
-    if(idx > -1){
-      notes[idx] = { ...notes[idx], title, content, images: pendingImages, updatedAt: Date.now() };
-    } else {
-      notes.push({ id: editingNote.id, title, content, images: pendingImages, createdAt: Date.now(), updatedAt: Date.now() });
-    }
+    if(idx > -1){ notes[idx] = { ...notes[idx], title, content, images: pendingImages, updatedAt: Date.now() }; }
   } else {
-    notes.push({
-      id: uid('n'), title, content, images: pendingImages,
-      createdAt: Date.now(), updatedAt: Date.now()
-    });
+    notes.push({ id: uid('n'), title, content, images: pendingImages, createdAt: Date.now(), updatedAt: Date.now() });
   }
-  notesByFolder[currentFolderId] = notes;
-  await sSet('app:notes:' + currentFolderId, notes, true);
-  closeModal();
-  renderSidebar();
-  renderMain();
-  showToast(editingNote ? 'تم تعديل النوت' : 'تم حفظ النوت');
+  notesByFolder[currentFolderId] = notes; await sSet('app:notes:' + currentFolderId, notes, true); closeModal(); renderSidebar(); renderMain(); showToast('تم الحفظ');
 }
 
 function confirmDeleteNote(note){
   showModal(`
     <div class="modal-header"><h3>🗑 حذف النوت</h3></div>
-    <div class="modal-body">
-      <div class="confirm-text">هتحذف النوت ده نهائيًا لكل اللي بيستخدموا اللينك. الخطوة دي ما تتراجعش فيها.</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost" id="cancel-del-note">إلغاء</button>
-      <button class="btn-danger-ghost" id="confirm-del-note">حذف نهائي</button>
-    </div>
+    <div class="modal-body"><div class="confirm-text">سيتم حذف النوت نهائياً من الموقع المشترك.</div></div>
+    <div class="modal-footer"><button class="btn-ghost" id="cancel-del-note">إلغاء</button><button class="btn-danger-ghost" id="confirm-del-note">حذف نهائي</button></div>
   `);
   document.getElementById('cancel-del-note').onclick = closeModal;
   document.getElementById('confirm-del-note').onclick = async ()=>{
-    const notes = await sGet('app:notes:' + currentFolderId, true) || [];
-    const updated = notes.filter(n=>n.id !== note.id);
-    notesByFolder[currentFolderId] = updated;
-    await sSet('app:notes:' + currentFolderId, updated, true);
-    closeModal();
-    renderSidebar();
-    renderMain();
-    showToast('تم حذف النوت');
+    const notes = await sGet('app:notes:' + currentFolderId, true) || []; const updated = notes.filter(n=>n.id !== note.id);
+    notesByFolder[currentFolderId] = updated; await sSet('app:notes:' + currentFolderId, updated, true); closeModal(); renderSidebar(); renderMain(); showToast('تم الحذف');
   };
 }
 
-/* ===================== Modal infra ===================== */
-function showModal(innerHtml){
-  const root = document.getElementById('modal-root');
-  root.innerHTML = `<div class="overlay" id="modal-overlay"><div class="modal">${innerHtml}</div></div>`;
-  document.getElementById('modal-overlay').addEventListener('mousedown', (e)=>{
-    if(e.target.id === 'modal-overlay') closeModal();
-  });
-}
-function closeModal(){
-  document.getElementById('modal-root').innerHTML = '';
-  editingNote = null;
-  pendingImages = [];
-}
-function openLightbox(src){
-  const root = document.getElementById('modal-root');
-  const lb = document.createElement('div');
-  lb.className = 'lightbox';
-  lb.innerHTML = `<img src="${src}">`;
-  lb.addEventListener('click', ()=>lb.remove());
-  root.appendChild(lb);
-}
-document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape'){
-    const lb = document.querySelector('.lightbox');
-    if(lb){ lb.remove(); return; }
-    if(document.getElementById('modal-overlay')) closeModal();
-  }
-});
+function showModal(innerHtml){ const root = document.getElementById('modal-root'); root.innerHTML = `<div class="overlay" id="modal-overlay"><div class="modal">${innerHtml}</div></div>`; document.getElementById('modal-overlay').addEventListener('mousedown', (e)=>{ if(e.target.id === 'modal-overlay') closeModal(); }); }
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; editingNote = null; pendingImages = []; }
+function openLightbox(src){ const root = document.getElementById('modal-root'); const lb = document.createElement('div'); lb.className = 'lightbox'; lb.innerHTML = `<img src="${src}">`; lb.addEventListener('click', ()=>lb.remove()); root.appendChild(lb); }
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ const lb = document.querySelector('.lightbox'); if(lb){lb.remove(); return;} if(document.getElementById('modal-overlay')) closeModal(); } });
 
-/* ===================== Mobile sidebar ===================== */
 function openSidebarMobile(){ document.body.classList.add('sidebar-open'); }
 function closeSidebarMobile(){ document.body.classList.remove('sidebar-open'); }
 
-/* ===================== Refresh buttons ===================== */
-document.getElementById('refresh-folders-btn').addEventListener('click', async ()=>{
-  await refreshFolders();
-  await preloadAllCounts();
-  if(currentFolderId) await loadNotesForFolder(currentFolderId, true);
-  renderSidebar();
-  renderMain();
-  showToast('تم التحديث');
-});
-document.getElementById('refresh-notes-btn').addEventListener('click', async ()=>{
-  if(!currentFolderId) return;
-  await loadNotesForFolder(currentFolderId, true);
-  renderMain();
-  showToast('تم التحديث');
-});
-
-/* ===================== Theme toggle ===================== */
-document.getElementById('theme-toggle').addEventListener('click', async ()=>{
-  theme = theme === 'dark' ? 'light' : 'dark';
-  applyTheme();
-  await sSet('app:theme', theme, false, true);
-});
-
+document.getElementById('refresh-folders-btn').addEventListener('click', async ()=>{ await refreshFolders(); await preloadAllCounts(); if(currentFolderId) await loadNotesForFolder(currentFolderId, true); renderSidebar(); renderMain(); showToast('تم التحديث'); });
+document.getElementById('refresh-notes-btn').addEventListener('click', async ()=>{ if(!currentFolderId) return; await loadNotesForFolder(currentFolderId, true); renderMain(); showToast('تم التحديث'); });
+document.getElementById('theme-toggle').addEventListener('click', async ()=>{ theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); await sSet('app:theme', theme, false, true); });
 </script>
 
 <script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getDatabase, ref, get as dbGet, set as dbSet, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
-const supabaseUrl = "https://qpejpssnbbxbvnlukecf.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZWpwc3NuYmJ4YnZubHVrZWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDk1NTQsImV4cCI6MjA5NzcyNTU1NH0.gynt8AAynrawTLKjjl0aAhUq3tiwtBfClEK51FdwixM";
+// إعدادات الـ Firebase المشترك الخاصة بمشروعك
+const firebaseConfig = {
+  apiKey: "AIzaSyDFXCcd5HxZRRfH9lTSw_I8dHJO4rKvmNk",
+  authDomain: "exam-notes-3ssam.firebaseapp.com",
+  databaseURL: "https://exam-notes-3ssam-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "exam-notes-3ssam",
+  storageBucket: "exam-notes-3ssam.firebasestorage.app",
+  messagingSenderId: "901496869239",
+  appId: "1:901496869239:web:6d816826e466cefa1d5172"
+};
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// مفتاح ImgBB الخاص بك والمربوط بحسابك مباشرة
+const IMGBB_API_KEY = "6910c01e73136ff4c36332af28e39b44";
+
+window.uploadFileToStorage = async function(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: "POST",
+    body: formData
+  });
+
+  if (!response.ok) throw new Error("ImgBB upload failed");
+  const json = await response.json();
+  
+  if (json && json.data && json.data.url) {
+    return json.data.url; // اللينك السريع والمباشر المولد من حسابك
+  }
+  throw new Error("Invalid ImgBB response");
+};
 
 window.storage = {
   async get(key, shared) {
-    if (!shared) {
-      const v = localStorage.getItem(key);
-      return v ? { value: v } : null;
-    }
-    
-    const { data, error } = await supabase
-      .from('kv_store')
-      .select('data')
-      .eq('id', key)
-      .maybeSingle();
-
-    if (error || !data) return null;
-    
-    return { value: JSON.stringify(data.data) };
+    if (!shared) { const v = localStorage.getItem(key); return v ? { value: v } : null; }
+    const snapshot = await dbGet(ref(db, 'kv_store/' + key.replace(/[\.#\$\[\]]/g, '_')));
+    if (!snapshot.exists()) return null;
+    return { value: JSON.stringify(snapshot.val()) };
   },
-
   async set(key, value, shared) {
-    if (!shared) {
-      localStorage.setItem(key, value);
-      return;
-    }
-
+    if (!shared) { localStorage.setItem(key, value); return; }
     const parsedValue = JSON.parse(value);
-    const { error } = await supabase
-      .from('kv_store')
-      .upsert({ id: key, data: parsedValue });
-
-    if (error) throw error;
+    await dbSet(ref(db, 'kv_store/' + key.replace(/[\.#\$\[\]]/g, '_')), parsedValue);
   },
-
   async delete(key, shared) {
-    if (!shared) {
-      localStorage.removeItem(key);
-      return;
-    }
-
-    const { error } = await supabase
-      .from('kv_store')
-      .delete()
-      .eq('id', key);
-
-    if (error) throw error;
+    if (!shared) { localStorage.removeItem(key); return; }
+    await remove(ref(db, 'kv_store/' + key.replace(/[\.#\$\[\]]/g, '_')));
   }
 };
 
