@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UWorld Notes</title>
+<link rel="icon" href="https://www.usmle.org/favicon.ico" type="image/x-icon" crossorigin="anonymous">
 <style>
   :root[data-theme="dark"]{
     --bg:#0f0f0f;
@@ -632,7 +633,6 @@ function showToast(msg){
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-// دالة فحص وطلب الاسم الذكية
 function checkAndPromptUserName() {
   let uName = localStorage.getItem('app:username');
   if (!uName) {
@@ -1039,7 +1039,6 @@ function renderMain(){
     const imgsHtml = (note.images && note.images.length) ? `<div class="note-imgs">${note.images.slice(0,3).map(im=>`<img src="${im.data}">`).join('')}${note.images.length>3 ? `<div class="more-badge">+${note.images.length-3}</div>`:''}</div>` : '';
     const folderIndicator = isGlobalView ? `<div class="note-folder-indicator">📂 ${escapeHtml(note.folderName)}</div>` : '';
     
-    // إنشاء أسطر معلومات كاتب النوتة والمعدل عليها بشكل منسق
     const authorName = note.createdBy || 'مستخدم غير معروف';
     let metaRowsHtml = `
       <div class="note-meta-item">
@@ -1104,7 +1103,6 @@ async function openNoteViewModal(note, folderId){
   const notes = notesByFolder[targetFolderId] || []; const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
   const imgsHtml = (note.images && note.images.length) ? `<div class="view-imgs">${note.images.map(im=>`<img src="${im.data}" class="view-img" data-src="${im.data}">`).join('')}</div>` : '';
   
-  // تجهيز نص معلومات كتابة وتعديل النوتة لعرضها بالكامل داخل الـ Modal
   const authorName = note.createdBy || 'مستخدم غير معروف';
   let modalMetaHtml = `<p style="font-size:12px; color:var(--text-faint); margin:0 0 4px 0;">✍️ أُنشئت بواسطة: <b>${escapeHtml(authorName)}</b> في ${formatDate(note.createdAt)}</p>`;
   if(note.updatedBy && note.updatedAt && note.updatedAt !== note.createdAt) {
@@ -1216,7 +1214,6 @@ async function saveNote(targetFolderId){
   const title = document.getElementById('note-title-input').value.trim(); const content = document.getElementById('note-content-input').value.trim();
   if(!title && !content && pendingImages.length===0){ showToast('النوت فارغة'); return; }
   
-  // سحب اسم الشخص الحالي لحفظه مع النوتة
   const currentUserName = localStorage.getItem('app:username') || 'مستخدم غير معروف';
   const notes = await sGet('app:notes:' + targetFolderId, true) || [];
   
@@ -1229,7 +1226,7 @@ async function saveNote(targetFolderId){
         content, 
         images: pendingImages, 
         updatedAt: Date.now(),
-        updatedBy: currentUserName // اسم من قام بالتعديل
+        updatedBy: currentUserName 
       }; 
     }
   } else {
@@ -1241,7 +1238,7 @@ async function saveNote(targetFolderId){
       isFavorite: false, 
       createdAt: Date.now(), 
       updatedAt: Date.now(),
-      createdBy: currentUserName, // اسم من أنشأ النوتة لأول مرة
+      createdBy: currentUserName, 
       updatedBy: currentUserName
     });
   }
