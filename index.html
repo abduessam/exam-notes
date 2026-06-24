@@ -139,7 +139,7 @@
   .sidebar-section-label{
     font-size:11px;color:var(--text-faint);font-weight:700;
     text-transform:uppercase;letter-spacing:.06em;margin:12px 4px 6px;
-    display:flex;align-items:center;justify-content:between;
+    display:flex;align-items:center;justify-content:space-between;
   }
   .folder-list-container{display:flex;flex-direction:column;gap:4px;}
   .folder-item{
@@ -194,6 +194,14 @@
   .add-folder-form button{
     background:var(--accent);color:var(--accent-text);border:none;border-radius:99px;
     padding:0 13px;font-weight:700;cursor:pointer;font-size:14px;
+  }
+
+  /* User item styling */
+  .user-online-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13.5px; color: var(--text-dim);
+  }
+  .user-online-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 8px #2ecc71;
   }
 
   /* ---------- Main ---------- */
@@ -319,7 +327,14 @@
     display:flex;align-items:center;justify-content:center;font-size:12px;
     color:var(--text-faint);background:var(--bg);
   }
-  .note-date{font-size:11px;color:var(--text-faint);}
+  
+  /* ستايل الميتا داتا الخاص بالأسماء والتواريخ بأسفل الكارت */
+  .note-meta-row {
+    display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--text-faint); margin-top: auto; padding-top: 4px; border-top: 1px dashed rgba(255,255,255,0.04);
+  }
+  [data-theme="light"] .note-meta-row { border-top-color: rgba(0,0,0,0.04); }
+  .note-meta-item { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .note-author-name { font-weight: 600; color: var(--text-dim); }
 
   .welcome-banner{
     margin:18px 26px 0;
@@ -487,6 +502,11 @@
     <div id="folder-list" class="folder-list-container"></div>
 
     <div id="add-folder-wrap"></div>
+
+    <div class="sidebar-section-label">🟢 المستخدمين المتواجدين</div>
+    <div id="online-users-list" class="folder-list-container" style="gap:2px;">
+      <div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">مفيش مستخدمين مسجلين</div>
+    </div>
   </aside>
 
   <main id="main">
@@ -612,6 +632,40 @@ function showToast(msg){
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
+// دالة فحص وطلب الاسم الذكية
+function checkAndPromptUserName() {
+  let uName = localStorage.getItem('app:username');
+  if (!uName) {
+    showModal(`
+      <div class="modal-header"><h3>✍️ أهلاً بك! سجل اسمك أولاً</h3></div>
+      <div class="modal-body">
+        <p style="font-size:14px; color:var(--text-dim); margin:0;">يرجى كتابة اسمك ليظهر لزملائك عند دخولك للموقع المشترك.</p>
+        <input type="text" id="username-init-input" class="text-input" placeholder="اكتب اسمك هنا..." maxlength="25">
+      </div>
+      <div class="modal-footer">
+        <div></div>
+        <button class="btn-primary" id="save-username-init">دخول الموقع</button>
+      </div>
+    `);
+    
+    document.getElementById('save-username-init').onclick = () => {
+      const inputName = document.getElementById('username-init-input').value.trim();
+      if (!inputName) { showToast('من فضلك اكتب اسمك أولاً'); return; }
+      
+      let uId = uid('user');
+      localStorage.setItem('app:username', inputName);
+      localStorage.setItem('app:userid', uId);
+      closeModal();
+      if (window.startPresenceTracking) window.startPresenceTracking(uId, inputName);
+      showToast(`أهلاً بك يا ${inputName} 🎉`);
+    };
+  } else {
+    let uId = localStorage.getItem('app:userid') || uid('user');
+    localStorage.setItem('app:userid', uId);
+    if (window.startPresenceTracking) window.startPresenceTracking(uId, uName);
+  }
+}
+
 async function init(){
   const savedTheme = await sGet('app:theme', false);
   theme = savedTheme || 'dark';
@@ -624,6 +678,8 @@ async function init(){
   renderSidebar();
   renderMain();
   await maybeOfferMigration();
+  
+  checkAndPromptUserName();
 }
 
 function applyTheme(){
@@ -983,6 +1039,23 @@ function renderMain(){
     const imgsHtml = (note.images && note.images.length) ? `<div class="note-imgs">${note.images.slice(0,3).map(im=>`<img src="${im.data}">`).join('')}${note.images.length>3 ? `<div class="more-badge">+${note.images.length-3}</div>`:''}</div>` : '';
     const folderIndicator = isGlobalView ? `<div class="note-folder-indicator">📂 ${escapeHtml(note.folderName)}</div>` : '';
     
+    // إنشاء أسطر معلومات كاتب النوتة والمعدل عليها بشكل منسق
+    const authorName = note.createdBy || 'مستخدم غير معروف';
+    let metaRowsHtml = `
+      <div class="note-meta-item">
+        <span>✍️ بواسطة: <span class="note-author-name">${escapeHtml(authorName)}</span></span>
+        <span>${formatDate(note.createdAt)}</span>
+      </div>
+    `;
+    if(note.updatedBy && note.updatedAt && note.updatedAt !== note.createdAt) {
+      metaRowsHtml += `
+        <div class="note-meta-item" style="opacity: 0.85;">
+          <span>✏️ تعديل: <span class="note-author-name">${escapeHtml(note.updatedBy)}</span></span>
+          <span>${formatDate(note.updatedAt)}</span>
+        </div>
+      `;
+    }
+
     card.innerHTML = `
       <div class="note-top">
         <div class="note-badge">${idx+1}</div>
@@ -992,7 +1065,9 @@ function renderMain(){
       <div class="note-preview">${escapeHtml(note.content)}</div>
       ${folderIndicator}
       ${imgsHtml}
-      <div class="note-date">${formatDate(note.createdAt)}</div>
+      <div class="note-meta-row">
+        ${metaRowsHtml}
+      </div>
     `;
     
     card.addEventListener('click', (e) => {
@@ -1029,9 +1104,22 @@ async function openNoteViewModal(note, folderId){
   const notes = notesByFolder[targetFolderId] || []; const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
   const imgsHtml = (note.images && note.images.length) ? `<div class="view-imgs">${note.images.map(im=>`<img src="${im.data}" class="view-img" data-src="${im.data}">`).join('')}</div>` : '';
   
+  // تجهيز نص معلومات كتابة وتعديل النوتة لعرضها بالكامل داخل الـ Modal
+  const authorName = note.createdBy || 'مستخدم غير معروف';
+  let modalMetaHtml = `<p style="font-size:12px; color:var(--text-faint); margin:0 0 4px 0;">✍️ أُنشئت بواسطة: <b>${escapeHtml(authorName)}</b> في ${formatDate(note.createdAt)}</p>`;
+  if(note.updatedBy && note.updatedAt && note.updatedAt !== note.createdAt) {
+    modalMetaHtml += `<p style="font-size:12px; color:var(--text-faint); margin:0;">✏️ آخر تعديل بواسطة: <b>${escapeHtml(note.updatedBy)}</b> في ${formatDate(note.updatedAt)}</p>`;
+  }
+
   showModal(`
     <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'بدون عنوان'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
-    <div class="modal-body">${note.content ? `<div class="view-content">${escapeHtml(note.content)}</div>` : ''}${imgsHtml}<div class="note-date">${formatDate(note.createdAt)}</div></div>
+    <div class="modal-body">
+      ${note.content ? `<div class="view-content">${escapeHtml(note.content)}</div>` : ''}
+      ${imgsHtml}
+      <div style="margin-top:14px; padding:10px; border-radius:8px; background:var(--bg-sidebar); border:1px solid var(--border);">
+        ${modalMetaHtml}
+      </div>
+    </div>
     <div class="modal-footer"><button class="btn-danger-ghost" id="delete-note-view-btn">حذف النوت</button><div class="footer-right"><button class="btn-ghost" id="close-view-btn">إغلاق</button><button class="btn-primary" id="edit-note-btn">✏️ تعديل</button></div></div>
   `);
   
@@ -1080,7 +1168,6 @@ async function openNoteEditModal(note, folderId){
   dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
   fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFiles(e.target.files); });
 
-  // --- ميزة لصق الصور المباشر (Paste) ---
   const modalBody = document.querySelector('.modal-body');
   if (modalBody) {
     modalBody.addEventListener('paste', async (e) => {
@@ -1128,12 +1215,35 @@ async function handleFiles(filesArray){
 async function saveNote(targetFolderId){
   const title = document.getElementById('note-title-input').value.trim(); const content = document.getElementById('note-content-input').value.trim();
   if(!title && !content && pendingImages.length===0){ showToast('النوت فارغة'); return; }
+  
+  // سحب اسم الشخص الحالي لحفظه مع النوتة
+  const currentUserName = localStorage.getItem('app:username') || 'مستخدم غير معروف';
   const notes = await sGet('app:notes:' + targetFolderId, true) || [];
+  
   if(editingNote){
     const idx = notes.findIndex(n=>n.id===editingNote.id);
-    if(idx > -1){ notes[idx] = { ...notes[idx], title, content, images: pendingImages, updatedAt: Date.now() }; }
+    if(idx > -1){ 
+      notes[idx] = { 
+        ...notes[idx], 
+        title, 
+        content, 
+        images: pendingImages, 
+        updatedAt: Date.now(),
+        updatedBy: currentUserName // اسم من قام بالتعديل
+      }; 
+    }
   } else {
-    notes.push({ id: uid('n'), title, content, images: pendingImages, isFavorite: false, createdAt: Date.now(), updatedAt: Date.now() });
+    notes.push({ 
+      id: uid('n'), 
+      title, 
+      content, 
+      images: pendingImages, 
+      isFavorite: false, 
+      createdAt: Date.now(), 
+      updatedAt: Date.now(),
+      createdBy: currentUserName, // اسم من أنشأ النوتة لأول مرة
+      updatedBy: currentUserName
+    });
   }
   notesByFolder[targetFolderId] = notes; await sSet('app:notes:' + targetFolderId, notes, true); 
   await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('تم الحفظ');
@@ -1167,7 +1277,7 @@ document.getElementById('theme-toggle').addEventListener('click', async ()=>{ th
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getDatabase, ref, get as dbGet, set as dbSet, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+import { getDatabase, ref, get as dbGet, set as dbSet, remove, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFXCcd5HxZRRfH9lTSw_I8dHJO4rKvmNk",
@@ -1192,6 +1302,32 @@ window.uploadFileToStorage = async function(file) {
   const json = await response.json();
   if (json && json.data && json.data.url) return json.data.url;
   throw new Error("Invalid ImgBB response");
+};
+
+window.startPresenceTracking = function(uid, username) {
+  const userStatusRef = ref(db, 'presence/' + uid);
+  dbSet(userStatusRef, { name: username, lastActive: Date.now() });
+  onDisconnect(userStatusRef).remove();
+  
+  const presenceListRef = ref(db, 'presence');
+  onValue(presenceListRef, (snapshot) => {
+    const listEl = document.getElementById('online-users-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    
+    if (snapshot.exists()) {
+      const users = snapshot.val();
+      Object.keys(users).forEach(uKey => {
+        const user = users[uKey];
+        const userItem = document.createElement('div');
+        userItem.className = 'user-online-item';
+        userItem.innerHTML = `<span class="user-online-dot"></span><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(user.name)}</div>`;
+        listEl.appendChild(userItem);
+      });
+    } else {
+      listEl.innerHTML = `<div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">مفيش مستخدمين مسجلين</div>`;
+    }
+  });
 };
 
 window.storage = {
