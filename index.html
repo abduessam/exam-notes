@@ -369,7 +369,7 @@
   }
   .modal{
     background:var(--bg-modal);border-radius:16px;border:1px solid var(--border);
-    width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;
+    width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;
     box-shadow:var(--shadow);
   }
   .modal-header{
@@ -383,22 +383,98 @@
     padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;gap:10px;
   }
   .field-label{font-size:12.5px;font-weight:700;color:var(--text-dim);margin-bottom:6px;display:block;}
-  input.text-input, textarea.text-input{
+  
+  /* الحقول وتنسيق حقل الجداول الغني */
+  input.text-input, .rich-text-input{
     width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;
     padding:11px 13px;color:var(--text);font-size:14.5px;font-family:inherit;outline:none;
-    resize:vertical;
   }
-  input.text-input:focus, textarea.text-input:focus{border-color:var(--accent);}
+  input.text-input:focus, .rich-text-input:focus{border-color:var(--accent);}
   input.text-input{
     text-align: start;
     unicode-bidi: plaintext;
   }
-  textarea.text-input{
-    min-height:150px;
+  
+  /* شريط أدوات التنسيق (Toolbar) الجديد */
+  .editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+  .toolbar-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    transition: 0.15s;
+  }
+  .toolbar-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border);
+  }
+  .toolbar-divider {
+    width: 1px;
+    background: var(--border);
+    margin: 4px 2px;
+  }
+
+  .rich-text-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .rich-text-input{
+    min-height:180px;
+    max-height:420px;
+    overflow-y:auto;
     line-height:1.7;
     text-align: start;
     unicode-bidi: plaintext;
+    background: var(--bg);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
+
+  /* حل مشكلة تباين لون الهايلايت الأصفر لجعل الخط باللون الأسود دوماً داخل المحرر وداخل العرض */
+  .rich-text-input *[style*="background-color: rgb(241, 196, 15)"],
+  .rich-text-input *[style*="background-color:#f1c40f"],
+  .rich-text-input span[style*="background-color"],
+  .view-content *[style*="background-color: rgb(241, 196, 15)"],
+  .view-content *[style*="background-color:#f1c40f"],
+  .view-content span[style*="background-color"] {
+    color: #000000 !important;
+  }
+
+  /* تنسيقات الجدول داخل المحرر وداخل العرض */
+  .rich-text-input table, .view-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+  }
+  .rich-text-input table th, .rich-text-input table td,
+  .view-content table th, .view-content table td {
+    border: 1px solid var(--border);
+    padding: 8px;
+    text-align: start;
+  }
+  .rich-text-input table th, .view-content table th {
+    background-color: var(--bg-sidebar);
+  }
+
   .btn-ghost{
     background:transparent;border:1.5px solid var(--border);color:var(--text-dim);
     border-radius:10px;padding:9px 15px;font-weight:700;font-size:14px;cursor:pointer;
@@ -445,6 +521,7 @@
     text-align: start;
     unicode-bidi: plaintext;
   }
+  .view-content p, .view-content div { margin: 0 0 8px 0; }
   .view-imgs{display:flex;flex-direction:column;gap:10px;}
   .view-img{ width:100%;height:auto;max-width:100%;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block;background:var(--bg); }
 
@@ -1074,13 +1151,16 @@ function renderMain(){
       `;
     }
 
+    // تنظيف المحتوى من وسوم HTML لعرض نص نظيف فقط داخل بطاقة المعاينة
+    const cleanPreview = (note.content || '').replace(/<[^>]*>/g, ' ');
+
     card.innerHTML = `
       <div class="note-top">
         <div class="note-badge">${idx+1}</div>
         <div class="note-title">${escapeHtml(note.title) || 'بدون عنوان'}</div>
         <button class="card-fav-btn ${note.isFavorite ? 'active' : ''}" title="المفضلة">${note.isFavorite ? '★' : '☆'}</button>
       </div>
-      <div class="note-preview">${escapeHtml(note.content)}</div>
+      <div class="note-preview">${cleanPreview}</div>
       ${folderIndicator}
       ${imgsHtml}
       <div class="note-meta-row">
@@ -1131,7 +1211,7 @@ async function openNoteViewModal(note, folderId){
   showModal(`
     <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'بدون عنوان'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
     <div class="modal-body">
-      ${note.content ? `<div class="view-content">${escapeHtml(note.content)}</div>` : ''}
+      ${note.content ? `<div class="view-content">${note.content}</div>` : ''}
       ${imgsHtml}
       <div style="margin-top:14px; padding:10px; border-radius:8px; background:var(--bg-sidebar); border:1px solid var(--border);">
         ${modalMetaHtml}
@@ -1146,6 +1226,13 @@ async function openNoteViewModal(note, folderId){
   document.querySelectorAll('.view-img').forEach(img=>{ img.addEventListener('click', ()=>openLightbox(img.dataset.src)); });
 }
 
+// دالة مخصصة لتنفيذ أوامر تنسيق النصوص داخل حقل الـ ContentEditable
+function execEditorCommand(command, value = null) {
+  document.execCommand(command, false, value);
+  const editor = document.getElementById('note-content-input');
+  if (editor) editor.focus();
+}
+
 async function openNoteEditModal(note, folderId){
   const targetFolderId = folderId || currentFolderId;
   await loadNotesForFolder(targetFolderId, true); renderMain(); 
@@ -1155,7 +1242,43 @@ async function openNoteEditModal(note, folderId){
     <div class="modal-header"><h3>${note ? 'تعديل النوت' : 'نوت جديدة'}</h3><button class="icon-btn" id="close-note-modal">✕</button></div>
     <div class="modal-body">
       <div><label class="field-label">العنوان</label><input type="text" class="text-input" id="note-title-input" maxlength="120" value="${escapeHtml(note ? note.title : '')}"></div>
-      <div><label class="field-label">المحتوى</label><textarea class="text-input" id="note-content-input">${escapeHtml(note ? note.content : '')}</textarea></div>
+      
+      <div class="rich-text-container">
+        <label class="field-label">المحتوى</label>
+        
+        <!-- شريط أدوات التنسيق المطور -->
+        <div class="editor-toolbar">
+          <button class="toolbar-btn" type="button" title="خط عريض" onclick="execEditorCommand('bold')"><b>B</b></button>
+          <button class="toolbar-btn" type="button" title="خط مائل" onclick="execEditorCommand('italic')"><i>I</i></button>
+          <button class="toolbar-btn" type="button" title="خط تحته سطر" onclick="execEditorCommand('underline')"><u>U</u></button>
+          <button class="toolbar-btn" type="button" title="خط يتوسطه سطر" onclick="execEditorCommand('strikeThrough')"><s>S</s></button>
+          
+          <div class="toolbar-divider"></div>
+          
+          <!-- ميزة الهايلايت الأصفر المخصصة -->
+          <button class="toolbar-btn" type="button" title="هايلايت أصفر" onclick="execEditorCommand('hiliteColor', '#f1c40f')">🟨</button>
+          <button class="toolbar-btn" type="button" title="إزالة التنسيق والهايلايت" onclick="execEditorCommand('removeFormat')">🎨❌</button>
+          
+          <div class="toolbar-divider"></div>
+          
+          <!-- أزرار التحكم في اتجاه ومحاذاة النص والـ Direction -->
+          <button class="toolbar-btn" type="button" title="اتجاه من اليمين لليسار RTL" onclick="execEditorCommand('contentReadOnly', false); document.getElementById('note-content-input').dir='rtl';">转向 RTL</button>
+          <button class="toolbar-btn" type="button" title="اتجاه من اليسار لليمن LTR" onclick="execEditorCommand('contentReadOnly', false); document.getElementById('note-content-input').dir='ltr';">转向 LTR</button>
+          
+          <div class="toolbar-divider"></div>
+          
+          <button class="toolbar-btn" type="button" title="محاذاة لليمين" onclick="execEditorCommand('justifyRight')">🪧</button>
+          <button class="toolbar-btn" type="button" title="محاذاة للوسط" onclick="execEditorCommand('justifyCenter')">📋</button>
+          <button class="toolbar-btn" type="button" title="محاذاة لليسار" onclick="execEditorCommand('justifyLeft')">🪟</button>
+          
+          <div class="toolbar-divider"></div>
+          
+          <button class="toolbar-btn" type="button" title="قائمة نقطية" onclick="execEditorCommand('insertUnorderedList')">•—</button>
+          <button class="toolbar-btn" type="button" title="قائمة رقمية" onclick="execEditorCommand('insertOrderedList')">1—</button>
+        </div>
+        
+        <div class="rich-text-input" id="note-content-input" contenteditable="true" dir="rtl">${note ? note.content : ''}</div>
+      </div>
       
       <div>
         <label class="field-label">الصور (يمكنك نسخ ولصق صورة مباشرة Ctrl+V)</label>
@@ -1171,6 +1294,16 @@ async function openNoteEditModal(note, folderId){
     <div class="modal-footer"><div>${note ? '<button class="btn-danger-ghost" id="delete-note-btn">حذف النوت</button>' : ''}</div><div class="footer-right"><button class="btn-ghost" id="cancel-note-btn">إلغاء</button><button class="btn-primary" id="save-note-btn" data-folder="${targetFolderId}">حفظ</button></div></div>
   `);
   
+  // تحسين أزرار اتجاه الكتابة لتغيير الرموز التعبيرية المعبرة
+  const rBtns = document.querySelectorAll('.toolbar-btn');
+  rBtns.forEach(b => {
+     if(b.title === "اتجاه من اليمين لليسار RTL") b.textContent = "➡️";
+     if(b.title === "اتجاه من اليسار لليمن LTR") b.textContent = "⬅️";
+     if(b.title === "محاذاة لليمين") b.textContent = "🔤»";
+     if(b.title === "محاذاة للوسط") b.textContent = "«🔤»";
+     if(b.title === "محاذاة لليسار") b.textContent = "«🔤";
+  });
+
   renderImgPreviews(); 
   document.getElementById('close-note-modal').onclick = closeModal; 
   document.getElementById('cancel-note-btn').onclick = closeModal;
@@ -1230,8 +1363,9 @@ async function handleFiles(filesArray){
 }
 
 async function saveNote(targetFolderId){
-  const title = document.getElementById('note-title-input').value.trim(); const content = document.getElementById('note-content-input').value.trim();
-  if(!title && !content && pendingImages.length===0){ showToast('النوت فارغة'); return; }
+  const title = document.getElementById('note-title-input').value.trim(); 
+  const content = document.getElementById('note-content-input').innerHTML.trim(); 
+  if(!title && (!content || content === '<br>') && pendingImages.length===0){ showToast('النوت فارغة'); return; }
   
   const currentUserName = localStorage.getItem('app:username') || 'مستخدم غير معروف';
   const notes = await sGet('app:notes:' + targetFolderId, true) || [];
