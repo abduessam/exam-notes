@@ -81,7 +81,7 @@
     max-width:450px;
     flex-shrink:0;
     background:var(--bg-sidebar);
-    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
     display:flex;
     flex-direction:column;
     padding:16px 14px;
@@ -91,7 +91,7 @@
   #sidebar-resizer {
     position:absolute;
     top:0;
-    left:0;
+    right:0;
     width:4px;
     height:100%;
     cursor:ew-resize;
@@ -231,7 +231,7 @@
   #search-input{
     width: 100%;
     padding: 10px 13px;
-    padding-left: 36px;
+    padding-right: 36px;
     border-radius: 10px;
     border: 1px solid var(--border);
     background: var(--bg-card);
@@ -249,7 +249,7 @@
   
   .search-clear-btn {
     position: absolute;
-    left: 10px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
@@ -335,7 +335,6 @@
     color:var(--text-faint);background:var(--bg);
   }
   
-  /* ستايل الميتا داتا الخاص بالأسماء والتواريخ بأسفل الكارت */
   .note-meta-row {
     display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--text-faint); margin-top: auto; padding-top: 4px; border-top: 1px dashed rgba(255,255,255,0.04);
   }
@@ -384,7 +383,6 @@
   }
   .field-label{font-size:12.5px;font-weight:700;color:var(--text-dim);margin-bottom:6px;display:block;}
   
-  /* الحقول وتنسيق حقل الجداول الغني */
   input.text-input, .rich-text-input{
     width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;
     padding:11px 13px;color:var(--text);font-size:14.5px;font-family:inherit;outline:none;
@@ -395,7 +393,7 @@
     unicode-bidi: plaintext;
   }
   
-  /* شريط أدوات التنسيق (Toolbar) الجديد */
+  /* Toolbar */
   .editor-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -449,7 +447,7 @@
     border-top-right-radius: 0;
   }
 
-  /* حل مشكلة تباين لون الهايلايت الأصفر لجعل الخط باللون الأسود دوماً داخل المحرر وداخل العرض */
+  /* Highlight Smart Fix for Dark Mode */
   .rich-text-input *[style*="background-color: rgb(241, 196, 15)"],
   .rich-text-input *[style*="background-color:#f1c40f"],
   .rich-text-input span[style*="background-color"],
@@ -459,7 +457,6 @@
     color: #000000 !important;
   }
 
-  /* تنسيقات الجدول داخل المحرر وداخل العرض */
   .rich-text-input table, .view-content table {
     border-collapse: collapse;
     width: 100%;
@@ -511,7 +508,7 @@
   }
   .img-preview img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;}
   .img-remove{
-    position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+    position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
     background:rgba(0,0,0,0.65);color:#fff;border:none;font-size:11px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
   }
@@ -543,8 +540,7 @@
   .toast.show{opacity:1;}
 
   @media (max-width:760px){
-    #sidebar{ position:fixed;inset:0 25% 0 auto;z-index:40;width:78% !important;max-width:300px;transform:translateX(105%);transition:transform .22s ease;box-shadow:var(--shadow); }
-    html[dir="rtl"] #sidebar{transform:translateX(-105%);}
+    #sidebar{ position:fixed;inset:0 auto 0 0;z-index:40;width:78% !important;max-width:300px;transform:translateX(-105%);transition:transform .22s ease;box-shadow:var(--shadow); }
     body.sidebar-open #sidebar{transform:translateX(0);}
     #sidebar-resizer{display:none;}
     #backdrop{ position:fixed;inset:0;background:var(--overlay);z-index:35;display:none; }
@@ -570,39 +566,39 @@
     <div class="brand">
       <div class="brand-title"><span class="brand-dot"></span> UWorld Notes</div>
       <div class="brand-actions">
-        <button class="icon-btn" id="refresh-folders-btn" title="تحديث كل البيانات">🔄</button>
-        <button class="icon-btn" id="theme-toggle" title="تبديل المظهر">🌙</button>
+        <button class="icon-btn" id="refresh-folders-btn" title="Refresh all data">🔄</button>
+        <button class="icon-btn" id="theme-toggle" title="Toggle theme">🌙</button>
       </div>
     </div>
     <div class="shared-badge">📚 موقع عباد الرحمن لنوتس الامتحان</div>
     <div class="shared-badge" id="conn-status" style="margin-top:6px;display:none;">Connecting to database...</div>
 
-    <div class="sidebar-section-label">الأقسام العامة</div>
+    <div class="sidebar-section-label">General Sections</div>
     <div class="folder-list-container" style="margin-bottom:12px;">
       <div class="folder-item" id="global-favs-btn">
         <div class="folder-avatar" style="background:var(--accent)">⭐</div>
-        <div class="folder-name">النوتس المفضلة</div>
+        <div class="folder-name">Favorite Notes</div>
         <div class="folder-count" id="global-favs-count">0</div>
       </div>
       <div class="folder-item" id="global-recent-btn">
         <div class="folder-avatar" style="background:#5fa8d3">🕒</div>
-        <div class="folder-name">أحدث النوتس المضافة</div>
+        <div class="folder-name">Recent Notes</div>
       </div>
     </div>
 
     <div id="pinned-folders-section" style="display:none;">
-      <div class="sidebar-section-label">📌 مجلدات مثبتة</div>
+      <div class="sidebar-section-label">📌 Pinned Folders</div>
       <div id="pinned-folder-list" class="folder-list-container" style="margin-bottom:12px;"></div>
     </div>
 
-    <div class="sidebar-section-label">المجلدات</div>
+    <div class="sidebar-section-label">Folders</div>
     <div id="folder-list" class="folder-list-container"></div>
 
     <div id="add-folder-wrap"></div>
 
-    <div class="sidebar-section-label">🟢 المستخدمين المتواجدين</div>
+    <div class="sidebar-section-label">🟢 Online Users</div>
     <div id="online-users-list" class="folder-list-container" style="gap:2px;">
-      <div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">مفيش مستخدمين مسجلين</div>
+      <div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">No users active</div>
     </div>
   </aside>
 
@@ -611,22 +607,22 @@
       <div id="header-left">
         <button class="icon-btn" id="hamburger" onclick="openSidebarMobile()">☰</button>
         <div>
-          <div id="folder-title">اختار مجلد</div>
+          <div id="folder-title">Select a Folder</div>
           <div id="folder-sub"></div>
         </div>
       </div>
       <div id="header-right">
-        <div class="stats-badge" id="stats-counter">مجلدات: <span id="stats-f-count">0</span> | نوتس: <span id="stats-n-count">0</span></div>
+        <div class="stats-badge" id="stats-counter">Folders: <span id="stats-f-count">0</span> | Notes: <span id="stats-n-count">0</span></div>
         <div class="search-wrapper">
-          <input type="search" id="search-input" placeholder="ابحث بالاسم أو المحتوى">
-          <button class="search-clear-btn" id="search-clear" title="مسح البحث">✕</button>
+          <input type="search" id="search-input" placeholder="Search title or content">
+          <button class="search-clear-btn" id="search-clear" title="Clear search">✕</button>
         </div>
-        <button class="btn-primary" id="new-note-btn" onclick="openNoteEditModal()" disabled>＋ نوت جديدة</button>
+        <button class="btn-primary" id="new-note-btn" onclick="openNoteEditModal()" disabled>＋ New Note</button>
       </div>
     </div>
     <div class="welcome-banner" id="welcome-banner">
-      <h2>👋 أهلاً بيك في UWorld Notes</h2>
-      <p>اكتب نوتسك، نظمها داخل مجلدات، وابحث فيها بسرعة من أي مكان داخل الموقع.</p>
+      <h2>👋 Welcome to UWorld Notes</h2>
+      <p>Write your notes, organize them in folders, and search instantly.</p>
     </div>
     <div id="notes-scroll">
       <div id="notes-grid"></div>
@@ -651,7 +647,7 @@ function setConnStatus(ok){
       el.style.color = 'var(--danger)';
     }
   }
-  if(!ok){ showToast('تعذر الاتصال بقاعدة البيانات المشتركة (Firebase). راجع الإنترنت.'); }
+  if(!ok){ showToast('Could not connect to Firebase database.'); }
 }
 async function sGet(key, shared){
   if(window.storage){
@@ -717,7 +713,7 @@ function escapeHtml(s){
 }
 function formatDate(ts){
   const d = new Date(ts);
-  return d.toLocaleDateString('ar-EG', {day:'numeric', month:'short', year:'numeric'});
+  return d.toLocaleDateString('en-US', {day:'numeric', month:'short', year:'numeric'});
 }
 let toastTimer=null;
 function showToast(msg){
@@ -733,27 +729,27 @@ function checkAndPromptUserName() {
   let uName = localStorage.getItem('app:username');
   if (!uName) {
     showModal(`
-      <div class="modal-header"><h3>✍️ أهلاً بك! سجل اسمك أولاً</h3></div>
+      <div class="modal-header"><h3>✍️ Welcome! Enter your name</h3></div>
       <div class="modal-body">
-        <p style="font-size:14px; color:var(--text-dim); margin:0;">يرجى كتابة اسمك ليظهر لزملائك عند دخولك للموقع المشترك.</p>
-        <input type="text" id="username-init-input" class="text-input" placeholder="اكتب اسمك هنا..." maxlength="25">
+        <p style="font-size:14px; color:var(--text-dim); margin:0;">Please enter your name to show up for your colleagues in the shared area.</p>
+        <input type="text" id="username-init-input" class="text-input" placeholder="Your name..." maxlength="25">
       </div>
       <div class="modal-footer">
         <div></div>
-        <button class="btn-primary" id="save-username-init">دخول الموقع</button>
+        <button class="btn-primary" id="save-username-init">Enter Site</button>
       </div>
     `);
     
     document.getElementById('save-username-init').onclick = () => {
       const inputName = document.getElementById('username-init-input').value.trim();
-      if (!inputName) { showToast('من فضلك اكتب اسمك أولاً'); return; }
+      if (!inputName) { showToast('Please enter your name'); return; }
       
       let uId = uid('user');
       localStorage.setItem('app:username', inputName);
       localStorage.setItem('app:userid', uId);
       closeModal();
       if (window.startPresenceTracking) window.startPresenceTracking(uId, inputName);
-      showToast(`أهلاً بك يا ${inputName} 🎉`);
+      showToast(`Welcome ${inputName} 🎉`);
     };
   } else {
     let uId = localStorage.getItem('app:userid') || uid('user');
@@ -774,7 +770,6 @@ async function init(){
   renderSidebar();
   renderMain();
   await maybeOfferMigration();
-  
   checkAndPromptUserName();
 }
 
@@ -843,7 +838,8 @@ function setupSidebarResizer() {
     const startX = initE.clientX;
 
     function doDrag(moveE) {
-      const deltaX = startX - moveE.clientX;
+      // Changed calculation for LTR layout direction
+      const deltaX = moveE.clientX - startX;
       let newWidth = startWidth + deltaX;
       
       if (newWidth >= 220 && newWidth <= 450) {
@@ -897,13 +893,13 @@ async function maybeOfferMigration(){
   try{ localFolders = JSON.parse(localStorage.getItem('app:folders') || 'null') || []; }catch(e){}
   if(!localFolders.length || folders.length) return;
   showModal(`
-    <div class="modal-header"><h3>📦 نقل النوتس المحفوظة على جهازك</h3></div>
+    <div class="modal-header"><h3>📦 Migrate Local Notes</h3></div>
     <div class="modal-body">
-      <div class="confirm-text">لاقينا ${localFolders.length} مجلد محفوظين على المتصفح ده. تحب ننقلهم للموقع المشترك؟</div>
+      <div class="confirm-text">Found ${localFolders.length} folders saved locally. Move them to the shared cloud database?</div>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" id="skip-migrate">تجاهل</button>
-      <button class="btn-primary" id="confirm-migrate">نقل النوتس</button>
+      <button class="btn-ghost" id="skip-migrate">Skip</button>
+      <button class="btn-primary" id="confirm-migrate">Migrate Now</button>
     </div>
   `);
   document.getElementById('skip-migrate').onclick = closeModal;
@@ -913,9 +909,9 @@ async function maybeOfferMigration(){
   };
 }
 async function migrateLocalToShared(localFolders){
-  showToast('بننقل النوتس...');
+  showToast('Migrating notes...');
   const ok = await sSet('app:folders', localFolders, true);
-  if(!ok){ showToast('فشل النقل — مفيش اتصال بقاعدة البيانات'); return; }
+  if(!ok){ showToast('Migration failed — offline'); return; }
   for(const f of localFolders){
     let localNotes = [];
     try{ localNotes = JSON.parse(localStorage.getItem('app:notes:' + f.id) || 'null') || []; }catch(e){}
@@ -923,7 +919,7 @@ async function migrateLocalToShared(localFolders){
   }
   await refreshFolders();
   if(folders.length){ currentFolderId = folders[0].id; await loadNotesForFolder(currentFolderId, true); }
-  renderSidebar(); renderMain(); showToast('تم نقل النوتس بنجاح ✅');
+  renderSidebar(); renderMain(); showToast('Migration successful ✅');
 }
 
 function renderSidebar(){
@@ -949,7 +945,7 @@ function renderSidebar(){
   if(normalFolders.length === 0 && pinnedFolders.length === 0){
     const hint = document.createElement('div');
     hint.style.cssText = 'font-size:13px;color:var(--text-faint);padding:8px 4px;line-height:1.7;';
-    hint.textContent = 'لسه مفيش مجلدات. اعمل أول مجلد جديد.';
+    hint.textContent = 'No folders yet. Create your first folder.';
     list.appendChild(hint);
   }
 
@@ -962,9 +958,9 @@ function renderSidebar(){
       <div class="folder-name">${escapeHtml(f.name)}</div>
       <div class="folder-count">${count}</div>
       <div class="folder-actions-btns">
-        <button class="folder-action-small pin-toggle ${f.isPinned ? 'pin-active' : ''}" title="${f.isPinned ? 'إزالة التثبيت' : 'تثبيت المجلد'}">📌</button>
-        <button class="folder-action-small folder-edit" title="تعديل">✏️</button>
-        <button class="folder-action-small folder-del" title="حذف">🗑️</button>
+        <button class="folder-action-small pin-toggle ${f.isPinned ? 'pin-active' : ''}" title="${f.isPinned ? 'Unpin Folder' : 'Pin Folder'}">📌</button>
+        <button class="folder-action-small folder-edit" title="Edit">✏️</button>
+        <button class="folder-action-small folder-del" title="Delete">🗑️</button>
       </div>
     `;
     item.addEventListener('click', (e)=>{
@@ -985,8 +981,8 @@ function renderSidebar(){
   if(addFolderOpen){
     addWrap.innerHTML = `
       <form class="add-folder-form" id="add-folder-form">
-        <input type="text" id="new-folder-input" placeholder="اسم المجلد الجديد" maxlength="40" autocomplete="off">
-        <button type="submit">إضافة</button>
+        <input type="text" id="new-folder-input" placeholder="New folder name" maxlength="40" autocomplete="off">
+        <button type="submit">Add</button>
       </form>
     `;
     const input = document.getElementById('new-folder-input');
@@ -996,7 +992,7 @@ function renderSidebar(){
       if(name) addFolder(name); else renderSidebar();
     });
   } else {
-    addWrap.innerHTML = `<button class="add-folder-btn" id="open-add-folder">＋ مجلد جديد</button>`;
+    addWrap.innerHTML = `<button class="add-folder-btn" id="open-add-folder">＋ New Folder</button>`;
     document.getElementById('open-add-folder').addEventListener('click', ()=>{ addFolderOpen = true; renderSidebar(); });
   }
 }
@@ -1022,45 +1018,45 @@ async function addFolder(name){
 function openEditFolderModal(folder){
   let pendingFolderImage = folder.image || null;
   showModal(`
-    <div class="modal-header"><h3>✏️ تعديل المجلد</h3><button class="icon-btn" id="close-edit-folder-modal">✕</button></div>
+    <div class="modal-header"><h3>✏️ Edit Folder</h3><button class="icon-btn" id="close-edit-folder-modal">✕</button></div>
     <div class="modal-body">
-      <div><label class="field-label">اسم المجلد</label><input type="text" class="text-input" id="edit-folder-name" maxlength="40" value="${escapeHtml(folder.name)}"></div>
+      <div><label class="field-label">Folder Name</label><input type="text" class="text-input" id="edit-folder-name" maxlength="40" value="${escapeHtml(folder.name)}"></div>
       <div>
-        <label class="field-label">شعار المجلد</label>
+        <label class="field-label">Folder Image</label>
         <div style="display:flex;align-items:center;gap:12px;">
           <div class="folder-avatar" id="edit-folder-avatar-preview" style="width:48px;height:48px;font-size:18px;${pendingFolderImage ? `background-image:url('${pendingFolderImage}')` : `background:${folder.color}`}">${pendingFolderImage ? '' : escapeHtml(folder.name.trim()[0] || '#')}</div>
-          <label class="img-upload-btn">🖼️ تغيير الصورة<input type="file" accept="image/*" id="edit-folder-img-input" style="display:none"></label>
-          ${pendingFolderImage ? '<button class="btn-ghost" id="remove-folder-img-btn">إزالة الصورة</button>' : ''}
+          <label class="img-upload-btn">🖼️ Change Image<input type="file" accept="image/*" id="edit-folder-img-input" style="display:none"></label>
+          ${pendingFolderImage ? '<button class="btn-ghost" id="remove-folder-img-btn">Remove Image</button>' : ''}
         </div>
       </div>
     </div>
-    <div class="modal-footer"><div></div><div class="footer-right"><button class="btn-ghost" id="cancel-edit-folder">إلغاء</button><button class="btn-primary" id="save-edit-folder">حفظ</button></div></div>
+    <div class="modal-footer"><div></div><div class="footer-right"><button class="btn-ghost" id="cancel-edit-folder">Cancel</button><button class="btn-primary" id="save-edit-folder">Save</button></div></div>
   `);
   document.getElementById('close-edit-folder-modal').onclick = closeModal;
   document.getElementById('cancel-edit-folder').onclick = closeModal;
   document.getElementById('edit-folder-img-input').addEventListener('change', async (e)=>{
     const file = e.target.files && e.target.files[0]; if(!file) return;
     try{
-      showToast('جاري رفع صورة المجلد...');
+      showToast('Uploading folder image...');
       pendingFolderImage = await window.uploadFileToStorage(file);
       openEditFolderModal({ ...folder, image: pendingFolderImage });
-    }catch(err){ showToast('فشل رفع الصورة'); }
+    }catch(err){ showToast('Upload failed'); }
   });
   if(document.getElementById('remove-folder-img-btn')){ document.getElementById('remove-folder-img-btn').onclick = ()=>{ openEditFolderModal({ ...folder, image: null }); }; }
   document.getElementById('save-edit-folder').onclick = async ()=>{
-    const name = document.getElementById('edit-folder-name').value.trim(); if(!name){ showToast('اكتب اسم للمجلد'); return; }
+    const name = document.getElementById('edit-folder-name').value.trim(); if(!name){ showToast('Name cannot be empty'); return; }
     const fresh = await sGet('app:folders', true) || []; const idx = fresh.findIndex(x=>x.id===folder.id);
     if(idx > -1){ fresh[idx] = { ...fresh[idx], name, image: pendingFolderImage }; }
-    folders = fresh; await sSet('app:folders', folders, true); closeModal(); renderSidebar(); renderMain(); showToast('تم تعديل المجلد');
+    folders = fresh; await sSet('app:folders', folders, true); closeModal(); renderSidebar(); renderMain(); showToast('Folder updated');
   };
 }
 
 function confirmDeleteFolder(folder){
   const count = (notesByFolder[folder.id] || []).length;
   showModal(`
-    <div class="modal-header"><h3>🗑 حذف "${escapeHtml(folder.name)}"</h3></div>
-    <div class="modal-body"><div class="confirm-text">سيتم حذف المجلد نهائياً وكل النوتس التي بداخله (${count} نوت).</div></div>
-    <div class="modal-footer"><button class="btn-ghost" id="cancel-del-folder">إلغاء</button><button class="btn-danger-ghost" id="confirm-del-folder">حذف نهائي</button></div>
+    <div class="modal-header"><h3>🗑 Delete "${escapeHtml(folder.name)}"</h3></div>
+    <div class="modal-body"><div class="confirm-text">This will permanently delete this folder and all its ${count} notes.</div></div>
+    <div class="modal-footer"><button class="btn-ghost" id="cancel-del-folder">Cancel</button><button class="btn-danger-ghost" id="confirm-del-folder">Delete Permanently</button></div>
   `);
   document.getElementById('cancel-del-folder').onclick = closeModal;
   document.getElementById('confirm-del-folder').onclick = async ()=>{ await deleteFolder(folder.id); closeModal(); };
@@ -1069,7 +1065,7 @@ async function deleteFolder(folderId){
   const fresh = await sGet('app:folders', true) || []; folders = fresh.filter(f=>f.id !== folderId);
   delete notesByFolder[folderId]; await sSet('app:folders', folders, true); await sDelete('app:notes:' + folderId, true);
   if(currentFolderId === folderId){ currentFolderId = folders.length ? folders[0].id : null; if(currentFolderId) await loadNotesForFolder(currentFolderId, true); }
-  renderSidebar(); renderMain(); showToast('تم حذف المجلد');
+  renderSidebar(); renderMain(); showToast('Folder deleted');
 }
 async function selectFolder(folderId){ currentFolderId = folderId; await loadNotesForFolder(folderId, true); renderSidebar(); renderMain(); closeSidebarMobile(); }
 
@@ -1080,8 +1076,8 @@ function renderMain(){
   
   if(welcome) welcome.style.display = currentFolderId ? 'none' : 'block';
   if(!currentFolderId){
-    if(titleEl) titleEl.textContent = 'اختار مجلد'; if(subEl) subEl.textContent = ''; if(newBtn) newBtn.disabled = true;
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🗂️</div><h3>اختار أو اعمل مجلد الأول</h3><p>استخدم شريط المجلدات الجانبي لبدء الكتابة والتصفح.</p></div>`; return;
+    if(titleEl) titleEl.textContent = 'Select a Folder'; if(subEl) subEl.textContent = ''; if(newBtn) newBtn.disabled = true;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🗂️</div><h3>Select or create a folder</h3></div>`; return;
   }
 
   let notes = [];
@@ -1089,7 +1085,7 @@ function renderMain(){
 
   if (currentFolderId === 'global-favs') {
     isGlobalView = true;
-    if(titleEl) titleEl.textContent = '⭐ النوتس المفضلة';
+    if(titleEl) titleEl.textContent = '⭐ Favorite Notes';
     if(newBtn) newBtn.disabled = true;
     Object.keys(notesByFolder).forEach(fId => {
       const f = folders.find(x => x.id === fId);
@@ -1098,11 +1094,11 @@ function renderMain(){
         if(n.isFavorite) notes.push({ ...n, folderId: fId, folderName: f ? f.name : '' });
       });
     });
-    if(subEl) subEl.textContent = `${notes.length} نوت مفضلة`;
+    if(subEl) subEl.textContent = `${notes.length} favorite notes`;
   } 
   else if (currentFolderId === 'global-recent') {
     isGlobalView = true;
-    if(titleEl) titleEl.textContent = '🕒 أحدث النوتس المضافة';
+    if(titleEl) titleEl.textContent = '🕒 Recent Notes';
     if(newBtn) newBtn.disabled = true;
     Object.keys(notesByFolder).forEach(fId => {
       const f = folders.find(x => x.id === fId);
@@ -1111,14 +1107,14 @@ function renderMain(){
     });
     notes.sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
     notes = notes.slice(0, 5);
-    if(subEl) subEl.textContent = `أحدث 5 نوتس تم تعديلها أو إضافتها`;
+    if(subEl) subEl.textContent = `Showing latest 5 notes`;
   } 
   else {
     isGlobalView = false;
     const folder = folders.find(f=>f.id===currentFolderId);
     notes = notesByFolder[currentFolderId] || [];
     if(titleEl) titleEl.textContent = folder ? folder.name : '';
-    if(subEl) subEl.textContent = notes.length ? `${notes.length} نوت` : 'لسه مفيش نوتس';
+    if(subEl) subEl.textContent = notes.length ? `${notes.length} notes` : 'No notes inside';
     if(newBtn) newBtn.disabled = false;
   }
 
@@ -1127,7 +1123,7 @@ function renderMain(){
   }
 
   if(notes.length === 0){
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🔎</div><h3>مفيش نوتس هنا</h3></div>`; return;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🔎</div><h3>No notes found</h3></div>`; return;
   }
 
   notes.forEach((note, idx)=>{
@@ -1135,30 +1131,29 @@ function renderMain(){
     const imgsHtml = (note.images && note.images.length) ? `<div class="note-imgs">${note.images.slice(0,3).map(im=>`<img src="${im.data}">`).join('')}${note.images.length>3 ? `<div class="more-badge">+${note.images.length-3}</div>`:''}</div>` : '';
     const folderIndicator = isGlobalView ? `<div class="note-folder-indicator">📂 ${escapeHtml(note.folderName)}</div>` : '';
     
-    const authorName = note.createdBy || 'مستخدم غير معروف';
+    const authorName = note.createdBy || 'Unknown User';
     let metaRowsHtml = `
       <div class="note-meta-item">
-        <span>✍️ بواسطة: <span class="note-author-name">${escapeHtml(authorName)}</span></span>
+        <span>✍️ By: <span class="note-author-name">${escapeHtml(authorName)}</span></span>
         <span>${formatDate(note.createdAt)}</span>
       </div>
     `;
     if(note.updatedBy && note.updatedAt && note.updatedAt !== note.createdAt) {
       metaRowsHtml += `
         <div class="note-meta-item" style="opacity: 0.85;">
-          <span>✏️ تعديل: <span class="note-author-name">${escapeHtml(note.updatedBy)}</span></span>
+          <span>✏️ Edit: <span class="note-author-name">${escapeHtml(note.updatedBy)}</span></span>
           <span>${formatDate(note.updatedAt)}</span>
         </div>
       `;
     }
 
-    // تنظيف المحتوى من وسوم HTML لعرض نص نظيف فقط داخل بطاقة المعاينة
     const cleanPreview = (note.content || '').replace(/<[^>]*>/g, ' ');
 
     card.innerHTML = `
       <div class="note-top">
         <div class="note-badge">${idx+1}</div>
-        <div class="note-title">${escapeHtml(note.title) || 'بدون عنوان'}</div>
-        <button class="card-fav-btn ${note.isFavorite ? 'active' : ''}" title="المفضلة">${note.isFavorite ? '★' : '☆'}</button>
+        <div class="note-title">${escapeHtml(note.title) || 'Untitled Note'}</div>
+        <button class="card-fav-btn ${note.isFavorite ? 'active' : ''}" title="Favorite">${note.isFavorite ? '★' : '☆'}</button>
       </div>
       <div class="note-preview">${cleanPreview}</div>
       ${folderIndicator}
@@ -1198,18 +1193,18 @@ async function toggleFavoriteNote(note, folderId) {
 async function openNoteViewModal(note, folderId){
   const targetFolderId = folderId || currentFolderId;
   await loadNotesForFolder(targetFolderId, true);
-  const fresh = (notesByFolder[targetFolderId] || []).find(n => n.id === note.id); if(!fresh){ showToast('النوت مش موجود'); return; } note = fresh;
+  const fresh = (notesByFolder[targetFolderId] || []).find(n => n.id === note.id); if(!fresh){ showToast('Note not found'); return; } note = fresh;
   const notes = notesByFolder[targetFolderId] || []; const noteNumber = notes.findIndex(n=>n.id===note.id)+1;
   const imgsHtml = (note.images && note.images.length) ? `<div class="view-imgs">${note.images.map(im=>`<img src="${im.data}" class="view-img" data-src="${im.data}">`).join('')}</div>` : '';
   
-  const authorName = note.createdBy || 'مستخدم غير معروف';
-  let modalMetaHtml = `<p style="font-size:12px; color:var(--text-faint); margin:0 0 4px 0;">✍️ أُنشئت بواسطة: <b>${escapeHtml(authorName)}</b> في ${formatDate(note.createdAt)}</p>`;
+  const authorName = note.createdBy || 'Unknown User';
+  let modalMetaHtml = `<p style="font-size:12px; color:var(--text-faint); margin:0 0 4px 0;">✍️ Created by: <b>${escapeHtml(authorName)}</b> on ${formatDate(note.createdAt)}</p>`;
   if(note.updatedBy && note.updatedAt && note.updatedAt !== note.createdAt) {
-    modalMetaHtml += `<p style="font-size:12px; color:var(--text-faint); margin:0;">✏️ آخر تعديل بواسطة: <b>${escapeHtml(note.updatedBy)}</b> في ${formatDate(note.updatedAt)}</p>`;
+    modalMetaHtml += `<p style="font-size:12px; color:var(--text-faint); margin:0;">✏️ Last edit by: <b>${escapeHtml(note.updatedBy)}</b> on ${formatDate(note.updatedAt)}</p>`;
   }
 
   showModal(`
-    <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'بدون عنوان'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
+    <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'Untitled Note'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
     <div class="modal-body">
       ${note.content ? `<div class="view-content">${note.content}</div>` : ''}
       ${imgsHtml}
@@ -1217,7 +1212,7 @@ async function openNoteViewModal(note, folderId){
         ${modalMetaHtml}
       </div>
     </div>
-    <div class="modal-footer"><button class="btn-danger-ghost" id="delete-note-view-btn">حذف النوت</button><div class="footer-right"><button class="btn-ghost" id="close-view-btn">إغلاق</button><button class="btn-primary" id="edit-note-btn">✏️ تعديل</button></div></div>
+    <div class="modal-footer"><button class="btn-danger-ghost" id="delete-note-view-btn">Delete Note</button><div class="footer-right"><button class="btn-ghost" id="close-view-btn">Close</button><button class="btn-primary" id="edit-note-btn">✏️ Edit</button></div></div>
   `);
   
   document.getElementById('close-view-modal').onclick = closeModal; document.getElementById('close-view-btn').onclick = closeModal;
@@ -1226,7 +1221,6 @@ async function openNoteViewModal(note, folderId){
   document.querySelectorAll('.view-img').forEach(img=>{ img.addEventListener('click', ()=>openLightbox(img.dataset.src)); });
 }
 
-// دالة مخصصة لتنفيذ أوامر تنسيق النصوص داخل حقل الـ ContentEditable
 function execEditorCommand(command, value = null) {
   document.execCommand(command, false, value);
   const editor = document.getElementById('note-content-input');
@@ -1239,70 +1233,57 @@ async function openNoteEditModal(note, folderId){
   editingNote = note || null; pendingImages = note ? JSON.parse(JSON.stringify(note.images||[])) : [];
   
   showModal(`
-    <div class="modal-header"><h3>${note ? 'تعديل النوت' : 'نوت جديدة'}</h3><button class="icon-btn" id="close-note-modal">✕</button></div>
+    <div class="modal-header"><h3>${note ? 'Edit Note' : 'New Note'}</h3><button class="icon-btn" id="close-note-modal">✕</button></div>
     <div class="modal-body">
-      <div><label class="field-label">العنوان</label><input type="text" class="text-input" id="note-title-input" maxlength="120" value="${escapeHtml(note ? note.title : '')}"></div>
+      <div><label class="field-label">Title</label><input type="text" class="text-input" id="note-title-input" maxlength="120" value="${escapeHtml(note ? note.title : '')}"></div>
       
       <div class="rich-text-container">
-        <label class="field-label">المحتوى</label>
+        <label class="field-label">Content</label>
         
-        <!-- شريط أدوات التنسيق المطور -->
         <div class="editor-toolbar">
-          <button class="toolbar-btn" type="button" title="خط عريض" onclick="execEditorCommand('bold')"><b>B</b></button>
-          <button class="toolbar-btn" type="button" title="خط مائل" onclick="execEditorCommand('italic')"><i>I</i></button>
-          <button class="toolbar-btn" type="button" title="خط تحته سطر" onclick="execEditorCommand('underline')"><u>U</u></button>
-          <button class="toolbar-btn" type="button" title="خط يتوسطه سطر" onclick="execEditorCommand('strikeThrough')"><s>S</s></button>
+          <button class="toolbar-btn" type="button" title="Bold" onclick="execEditorCommand('bold')"><b>B</b></button>
+          <button class="toolbar-btn" type="button" title="Italic" onclick="execEditorCommand('italic')"><i>I</i></button>
+          <button class="toolbar-btn" type="button" title="Underline" onclick="execEditorCommand('underline')"><u>U</u></button>
+          <button class="toolbar-btn" type="button" title="Strikethrough" onclick="execEditorCommand('strikeThrough')"><s>S</s></button>
           
           <div class="toolbar-divider"></div>
           
-          <!-- ميزة الهايلايت الأصفر المخصصة -->
-          <button class="toolbar-btn" type="button" title="هايلايت أصفر" onclick="execEditorCommand('hiliteColor', '#f1c40f')">🟨</button>
-          <button class="toolbar-btn" type="button" title="إزالة التنسيق والهايلايت" onclick="execEditorCommand('removeFormat')">🎨❌</button>
+          <button class="toolbar-btn" type="button" title="Yellow Highlight" onclick="execEditorCommand('hiliteColor', '#f1c40f')">🟨</button>
+          <button class="toolbar-btn" type="button" title="Clear Formatting" onclick="execEditorCommand('removeFormat')">🎨❌</button>
           
           <div class="toolbar-divider"></div>
           
-          <!-- أزرار التحكم في اتجاه ومحاذاة النص والـ Direction -->
-          <button class="toolbar-btn" type="button" title="اتجاه من اليمين لليسار RTL" onclick="execEditorCommand('contentReadOnly', false); document.getElementById('note-content-input').dir='rtl';">转向 RTL</button>
-          <button class="toolbar-btn" type="button" title="اتجاه من اليسار لليمن LTR" onclick="execEditorCommand('contentReadOnly', false); document.getElementById('note-content-input').dir='ltr';">转向 LTR</button>
+          <button class="toolbar-btn" type="button" title="RTL Direction" onclick="execEditorCommand('contentReadOnly', false); document.getElementById('note-content-input').dir='rtl';">➡️</button>
+          <button class="toolbar-btn" type="button" title="LTR Direction" onclick="execEditorCommand('contentReadOnly', false); document.getElementById('note-content-input').dir='ltr';">⬅️</button>
           
           <div class="toolbar-divider"></div>
           
-          <button class="toolbar-btn" type="button" title="محاذاة لليمين" onclick="execEditorCommand('justifyRight')">🪧</button>
-          <button class="toolbar-btn" type="button" title="محاذاة للوسط" onclick="execEditorCommand('justifyCenter')">📋</button>
-          <button class="toolbar-btn" type="button" title="محاذاة لليسار" onclick="execEditorCommand('justifyLeft')">🪟</button>
+          <button class="toolbar-btn" type="button" title="Align Left" onclick="execEditorCommand('justifyLeft')">«🔤</button>
+          <button class="toolbar-btn" type="button" title="Align Center" onclick="execEditorCommand('justifyCenter')">«🔤»</button>
+          <button class="toolbar-btn" type="button" title="Align Right" onclick="execEditorCommand('justifyRight')">🔤»</button>
           
           <div class="toolbar-divider"></div>
           
-          <button class="toolbar-btn" type="button" title="قائمة نقطية" onclick="execEditorCommand('insertUnorderedList')">•—</button>
-          <button class="toolbar-btn" type="button" title="قائمة رقمية" onclick="execEditorCommand('insertOrderedList')">1—</button>
+          <button class="toolbar-btn" type="button" title="Bullet List" onclick="execEditorCommand('insertUnorderedList')">•—</button>
+          <button class="toolbar-btn" type="button" title="Numbered List" onclick="execEditorCommand('insertOrderedList')">1—</button>
         </div>
         
-        <div class="rich-text-input" id="note-content-input" contenteditable="true" dir="rtl">${note ? note.content : ''}</div>
+        <div class="rich-text-input" id="note-content-input" contenteditable="true" dir="ltr">${note ? note.content : ''}</div>
       </div>
       
       <div>
-        <label class="field-label">الصور (يمكنك نسخ ولصق صورة مباشرة Ctrl+V)</label>
+        <label class="field-label">Images (You can paste direct image files via Ctrl+V)</label>
         <div id="drop-zone" class="drop-zone">
           <span class="drop-zone-icon">🖼️</span>
-          <span class="drop-zone-text">اسحب الصور وارميها هنا، أو اضغط لاختيار الصور، أو انسخها والصقها مباشرة</span>
+          <span class="drop-zone-text">Drag & drop files here, click to choose, or paste image data</span>
           <input type="file" accept="image/*" multiple id="note-img-input" style="display:none">
         </div>
         <div id="img-previews"></div>
       </div>
 
     </div>
-    <div class="modal-footer"><div>${note ? '<button class="btn-danger-ghost" id="delete-note-btn">حذف النوت</button>' : ''}</div><div class="footer-right"><button class="btn-ghost" id="cancel-note-btn">إلغاء</button><button class="btn-primary" id="save-note-btn" data-folder="${targetFolderId}">حفظ</button></div></div>
+    <div class="modal-footer"><div>${note ? '<button class="btn-danger-ghost" id="delete-note-btn">Delete Note</button>' : ''}</div><div class="footer-right"><button class="btn-ghost" id="cancel-note-btn">Cancel</button><button class="btn-primary" id="save-note-btn" data-folder="${targetFolderId}">Save Note</button></div></div>
   `);
-  
-  // تحسين أزرار اتجاه الكتابة لتغيير الرموز التعبيرية المعبرة
-  const rBtns = document.querySelectorAll('.toolbar-btn');
-  rBtns.forEach(b => {
-     if(b.title === "اتجاه من اليمين لليسار RTL") b.textContent = "➡️";
-     if(b.title === "اتجاه من اليسار لليمن LTR") b.textContent = "⬅️";
-     if(b.title === "محاذاة لليمين") b.textContent = "🔤»";
-     if(b.title === "محاذاة للوسط") b.textContent = "«🔤»";
-     if(b.title === "محاذاة لليسار") b.textContent = "«🔤";
-  });
 
   renderImgPreviews(); 
   document.getElementById('close-note-modal').onclick = closeModal; 
@@ -1351,13 +1332,13 @@ function renderImgPreviews(){
 
 async function handleFiles(filesArray){
   const files = Array.from(filesArray || []); if(!files.length) return;
-  showToast('جاري رفع الصور ومزامنتها...');
+  showToast('Uploading images...');
   for(const file of files){
     if(!file.type.startsWith('image/')) continue;
     try{
       const publicUrl = await window.uploadFileToStorage(file);
       pendingImages.push({ id: uid('img'), data: publicUrl });
-    }catch(err){ showToast('فشل في رفع أحد الصور'); }
+    }catch(err){ showToast('Image upload failed'); }
   }
   renderImgPreviews(); 
 }
@@ -1365,9 +1346,9 @@ async function handleFiles(filesArray){
 async function saveNote(targetFolderId){
   const title = document.getElementById('note-title-input').value.trim(); 
   const content = document.getElementById('note-content-input').innerHTML.trim(); 
-  if(!title && (!content || content === '<br>') && pendingImages.length===0){ showToast('النوت فارغة'); return; }
+  if(!title && (!content || content === '<br>') && pendingImages.length===0){ showToast('Note is empty'); return; }
   
-  const currentUserName = localStorage.getItem('app:username') || 'مستخدم غير معروف';
+  const currentUserName = localStorage.getItem('app:username') || 'Unknown User';
   const notes = await sGet('app:notes:' + targetFolderId, true) || [];
   
   if(editingNote){
@@ -1396,20 +1377,20 @@ async function saveNote(targetFolderId){
     });
   }
   notesByFolder[targetFolderId] = notes; await sSet('app:notes:' + targetFolderId, notes, true); 
-  await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('تم الحفظ');
+  await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('Saved');
 }
 
 function confirmDeleteNote(note, targetFolderId){
   showModal(`
-    <div class="modal-header"><h3>🗑 حذف النوت</h3></div>
-    <div class="modal-body"><div class="confirm-text">سيتم حذف النوت نهائياً من الموقع المشترك.</div></div>
-    <div class="modal-footer"><button class="btn-ghost" id="cancel-del-note">إلغاء</button><button class="btn-danger-ghost" id="confirm-del-note">حذف نهائي</button></div>
+    <div class="modal-header"><h3>🗑 Delete Note</h3></div>
+    <div class="modal-body"><div class="confirm-text">Are you sure you want to permanently delete this note?</div></div>
+    <div class="modal-footer"><button class="btn-ghost" id="cancel-del-note">Cancel</button><button class="btn-danger-ghost" id="confirm-del-note">Delete</button></div>
   `);
   document.getElementById('cancel-del-note').onclick = closeModal;
   document.getElementById('confirm-del-note').onclick = async ()=>{
     const notes = await sGet('app:notes:' + targetFolderId, true) || []; const updated = notes.filter(n=>n.id !== note.id);
     notesByFolder[targetFolderId] = updated; await sSet('app:notes:' + targetFolderId, updated, true);
-    await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('تم الحذف');
+    await preloadAllCounts(); closeModal(); renderSidebar(); renderMain(); showToast('Deleted');
   };
 }
 
@@ -1421,7 +1402,7 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ const lb = d
 function openSidebarMobile(){ document.body.classList.add('sidebar-open'); }
 function closeSidebarMobile(){ document.body.classList.remove('sidebar-open'); }
 
-document.getElementById('refresh-folders-btn').addEventListener('click', async ()=>{ await refreshFolders(); await preloadAllCounts(); if(currentFolderId && currentFolderId !== 'global-favs' && currentFolderId !== 'global-recent') await loadNotesForFolder(currentFolderId, true); renderSidebar(); renderMain(); showToast('تم تحديث كل البيانات المزامنة ومراجعتها'); });
+document.getElementById('refresh-folders-btn').addEventListener('click', async ()=>{ await refreshFolders(); await preloadAllCounts(); if(currentFolderId && currentFolderId !== 'global-favs' && currentFolderId !== 'global-recent') await loadNotesForFolder(currentFolderId, true); renderSidebar(); renderMain(); showToast('Data refreshed'); });
 document.getElementById('theme-toggle').addEventListener('click', async ()=>{ theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); await sSet('app:theme', theme, false, true); });
 </script>
 
@@ -1475,7 +1456,7 @@ window.startPresenceTracking = function(uid, username) {
         listEl.appendChild(userItem);
       });
     } else {
-      listEl.innerHTML = `<div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">مفيش مستخدمين مسجلين</div>`;
+      listEl.innerHTML = `<div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">No active users</div>`;
     }
   });
 };
