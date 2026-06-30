@@ -1228,6 +1228,7 @@ function renderMain(){
   const welcome = document.getElementById('welcome-banner'); if(!grid) return; grid.innerHTML = '';
   
   if(welcome) welcome.style.display = currentFolderId ? 'none' : 'block';
+  const ayahCard = document.getElementById('ayah-card'); if(ayahCard) ayahCard.style.display = currentFolderId ? 'none' : 'block';
   if(!currentFolderId){
     if(titleEl) titleEl.textContent = 'Select a Folder'; if(subEl) subEl.textContent = ''; if(newBtn) newBtn.disabled = true;
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="big">🗂️</div><h3>Select or create a folder</h3></div>`; return;
