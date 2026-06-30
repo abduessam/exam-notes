@@ -202,7 +202,7 @@
     display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13.5px; color: var(--text-dim);
   }
   .user-online-dot {
-    width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 8px #2ecc71;
+    width: 8px; height: 8px; border-radius: 50%;
   }
 
   /* ---------- Main ---------- */
@@ -596,7 +596,7 @@
 
     <div id="add-folder-wrap"></div>
 
-    <div class="sidebar-section-label">🟢 Online Users</div>
+    <div class="sidebar-section-label">👥 حالة المستخدمين</div>
     <div id="online-users-list" class="folder-list-container" style="gap:2px;">
       <div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">No users active</div>
     </div>
@@ -1437,9 +1437,32 @@ window.uploadFileToStorage = async function(file) {
 
 window.startPresenceTracking = function(uid, username) {
   const userStatusRef = ref(db, 'presence/' + uid);
-  dbSet(userStatusRef, { name: username, lastActive: Date.now() });
-  onDisconnect(userStatusRef).remove();
   
+  dbSet(userStatusRef, { 
+    name: username, 
+    online: true, 
+    lastActive: Date.now() 
+  });
+  
+  onDisconnect(userStatusRef).set({
+    name: username,
+    online: false,
+    lastActive: Date.now()
+  });
+  
+  function timeAgo(timestamp) {
+    const diff = Date.now() - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return "منذ ثوانٍ";
+    if (minutes < 60) return `منذ ${minutes} د`;
+    if (hours < 24) return `منذ ${hours} س`;
+    return `منذ ${days} يوم`;
+  }
+
   const presenceListRef = ref(db, 'presence');
   onValue(presenceListRef, (snapshot) => {
     const listEl = document.getElementById('online-users-list');
@@ -1448,15 +1471,32 @@ window.startPresenceTracking = function(uid, username) {
     
     if (snapshot.exists()) {
       const users = snapshot.val();
-      Object.keys(users).forEach(uKey => {
-        const user = users[uKey];
+      
+      const usersArray = Object.keys(users).map(k => users[k]);
+      usersArray.sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0));
+
+      usersArray.forEach(user => {
         const userItem = document.createElement('div');
         userItem.className = 'user-online-item';
-        userItem.innerHTML = `<span class="user-online-dot"></span><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(user.name)}</div>`;
+        
+        const dotColor = user.online ? '#2ecc71' : '#9aa0aa';
+        const dotShadow = user.online ? 'box-shadow: 0 0 8px #2ecc71;' : '';
+        
+        const statusText = user.online ? 
+          `<span style="color:#2ecc71; font-size:11px; margin-left:4px;">(نشط الآن)</span>` : 
+          `<span style="color:var(--text-faint); font-size:11px; margin-left:4px;" dir="rtl">(${timeAgo(user.lastActive)})</span>`;
+
+        userItem.innerHTML = `
+          <span class="user-online-dot" style="background:${dotColor}; ${dotShadow}; flex-shrink:0;"></span>
+          <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; justify-content:space-between; width:100%; align-items:center;">
+            <span style="font-weight:600;">${escapeHtml(user.name)}</span>
+            ${statusText}
+          </div>
+        `;
         listEl.appendChild(userItem);
       });
     } else {
-      listEl.innerHTML = `<div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">No active users</div>`;
+      listEl.innerHTML = `<div style="font-size:12px;color:var(--text-faint);padding:4px 8px;">لا يوجد مستخدمين</div>`;
     }
   });
 };
