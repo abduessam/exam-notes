@@ -514,12 +514,18 @@
   }
 
   .view-content{
-    font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word;
+    font-size:15px;line-height:1.7;color:var(--text);word-break:break-word;
     text-align: start;
     unicode-bidi: plaintext;
+    flex-shrink: 0;
+    width: 100%;
+    display: block;
+    overflow-x: auto;
   }
   .view-content p, .view-content div { margin: 0 0 8px 0; }
-  .view-imgs{display:flex;flex-direction:column;gap:10px;}
+  .view-content ul, .view-content ol { padding-inline-start: 24px; margin: 4px 0 12px 0; }
+  
+  .view-imgs{display:flex;flex-direction:column;gap:14px;flex-shrink: 0;width: 100%;margin-top: 10px;}
   .view-img{ width:100%;height:auto;max-width:100%;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block;background:var(--bg); }
 
   .lightbox{ position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:80;display:flex;align-items:center;justify-content:center;padding:30px;cursor:zoom-out; }
@@ -1207,10 +1213,10 @@ async function openNoteViewModal(note, folderId){
     <div class="modal-header"><h3><span class="note-badge" style="width:28px;height:28px;font-size:12px;">${noteNumber}</span> ${escapeHtml(note.title) || 'Untitled Note'}</h3><button class="icon-btn" id="close-view-modal">✕</button></div>
     <div class="modal-body">
       ${note.content ? `<div class="view-content">${note.content}</div>` : ''}
-      ${imgsHtml}
       <div style="margin-top:14px; padding:10px; border-radius:8px; background:var(--bg-sidebar); border:1px solid var(--border);">
         ${modalMetaHtml}
       </div>
+      ${imgsHtml}
     </div>
     <div class="modal-footer"><button class="btn-danger-ghost" id="delete-note-view-btn">Delete Note</button><div class="footer-right"><button class="btn-ghost" id="close-view-btn">Close</button><button class="btn-primary" id="edit-note-btn">✏️ Edit</button></div></div>
   `);
@@ -1451,6 +1457,7 @@ window.startPresenceTracking = function(uid, username) {
   });
   
   function timeAgo(timestamp) {
+    if (!timestamp) return "غير معروف";
     const diff = Date.now() - timestamp;
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
